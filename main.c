@@ -53,13 +53,32 @@ int main(int argc, char** argv)
         if(!(fp = getFile(argv[i], AS))){/*TODO: fclose after done? */
            fprintf(stderr, "ERROR: Cannot open input file\n");
         }
-        if(!parse1(fp)){
-            /*(error)*/
+        /*if(!parse1(fp)){
+            /*(error)
         }
         if(!parse2(fp)){
         
-        }
+        }*/
 
 
     }
 }
+/** LINKED LIST 
+ * 1.  pointer to next item
+ * 2.  label
+ * 3.  data/instruction
+ * 4.  extern/not extern
+ * 5.  address**/
+
+/** instruction counter, starts at 100, Data counter **/
+/*
+struct COMMANDS{
+    char* label;
+    unsigned char numParams;
+    unsigned char method;need to define flags in enum/defines 
+} CMD = {
+    {"add", 2, }
+    {"sub", 2, }
+}*/
+
+/** commands */
