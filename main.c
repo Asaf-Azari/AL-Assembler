@@ -11,7 +11,7 @@
 #include "assembler.h"
 
 
-/*Function for acquiring FILE* for writing/reading.*/
+/*acquiring FILE* with FILETYPE extension for writing/reading.*/
 FILE* getFile(char* fileName, FILETYPE type)
 {
     int nameLen = strlen(fileName);
@@ -50,7 +50,7 @@ int main(int argc, char** argv)
         return 0;/*TODO: Return 1?*/
     }
     for(i = 1; i < argc; ++i){/*Main program loop*/
-        if(!(fp = getFile(argv[i], AS))){
+        if(!(fp = getFile(argv[i], AS))){/*TODO: fclose after done? */
            fprintf(stderr, "ERROR: Cannot open input file\n");
         }
         if(!parse1(fp)){
