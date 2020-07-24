@@ -10,13 +10,13 @@
 #include <string.h>
 
 /*Linked list structures*/
-typedef struct {
-    node*         nextPtr;
+typedef struct node{
+    struct node*  nextPtr;
     char*         label;
     unsigned char properties;
     unsigned int  address;/*TODO: maybe signed*/
 } node;
-typedef struct{
+typedef struct list{
     node* head;
     node* tail;
 } list;
@@ -35,11 +35,11 @@ int exists(list* l, char* newLabel)
 }
 /*Creates node to be added to list*/
 /*TOOD: check if can return by value. probably not considering it should be freed as scope ends*/
-node* createNode(char* nodeLabel, unsigned char nodeProperties, unsigned int address)
+/*node* createNode(char* nodeLabel, unsigned char nodeProperties, unsigned int address)
 {
     node* newNode = (node*) malloc(sizeof(node));
     newNode->label = nodeLabel;
-}
+}*/
 
 /*append node to the list, if the list is empty, appoint node as head*/
 void appendNode(list* l, node* n)
