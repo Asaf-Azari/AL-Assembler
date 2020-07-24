@@ -9,6 +9,7 @@
 */
 #include <stdio.h>
 #include "assembler.h"
+#include "asm_tables.h"
 
 
 /*acquiring FILE* with FILETYPE extension for writing/reading.*/
@@ -46,19 +47,19 @@ int main(int argc, char** argv)
     int i;
     FILE* fp = NULL;
     if(argc == 1){/*no arguments*/
-        fprintf(stderr, "ERROR: No arguments supplied\n");
+        printf("ERROR: No arguments supplied\n");
         return 0;/*TODO: Return 1?*/
     }
     for(i = 1; i < argc; ++i){/*Main program loop*/
         if(!(fp = getFile(argv[i], AS))){/*TODO: fclose after done? */
-           fprintf(stderr, "ERROR: Cannot open input file\n");
+           printf("ERROR: Cannot open input file\n");
         }
-        /*if(!parse1(fp)){
-            /*(error)
+        /*printf("%s\n", CMD[0].cmdName); testing CMD inclusion*/
+        if(firstPass(fp)){
         }
         if(!parse2(fp)){
         
-        }*/
+        }
 
 
     }
@@ -71,14 +72,6 @@ int main(int argc, char** argv)
  * 5.  address**/
 
 /** instruction counter, starts at 100, Data counter **/
-/*
-struct COMMANDS{
-    char* label;
-    unsigned char numParams;
-    unsigned char method;need to define flags in enum/defines 
-} CMD = {
-    {"add", 2, }
-    {"sub", 2, }
-}*/
+
 
 /** commands */

@@ -13,7 +13,8 @@
 typedef struct node{
     struct node*  nextPtr;
     char*         label;
-    unsigned char properties;
+    unsigned char isData;
+    unsigned char isExtern;
     unsigned int  address;/*TODO: maybe signed*/
 } node;
 typedef struct list{
@@ -34,7 +35,8 @@ int exists(list* l, char* newLabel)
     return 0;
 }
 /*Creates node to be added to list*/
-/*TOOD: check if can return by value. probably not considering it should be freed as scope ends*/
+/*TOOD: check if can return by value. probably not considering it should be freed as scope ends
+ *TODO: remember to check that label isn't one of the saved keywords i.e r1, r2 etc.*/
 /*node* createNode(char* nodeLabel, unsigned char nodeProperties, unsigned int address)
 {
     node* newNode = (node*) malloc(sizeof(node));
