@@ -54,6 +54,7 @@ int main(int argc, char** argv)
         if(!(fp = getFile(argv[i], AS))){/*TODO: fclose after done? */
            printf("ERROR: Cannot open input file\n");
         }
+        
         /*printf("%s\n", CMD[0].cmdName); testing CMD inclusion*/
         if(firstPass(fp)){
         }

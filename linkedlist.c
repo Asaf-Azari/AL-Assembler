@@ -8,21 +8,9 @@
 /*TODO: move MAXADDRESS?*/
 #define MAXADDRESS 2097151
 #include <string.h>
+#include "linkedlist.h"
 
-/*Linked list structures*/
-typedef struct node{
-    struct node*  nextPtr;
-    char*         label;
-    unsigned char isData;
-    unsigned char isExtern;
-    unsigned int  address;/*TODO: maybe signed*/
-} node;
-typedef struct list{
-    node* head;
-    node* tail;
-} list;
 /*TODO: Generally test functions.
-
 /*Checks if label exists in symbol table*/
 int exists(list* l, char* newLabel)
 {
