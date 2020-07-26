@@ -4,12 +4,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-/*
- * Entry point  TODO: add stuff?
-*/
 #include <stdio.h>
 #include "assembler.h"
 #include "asm_tables.h"
+#include "first_pass.h"
+
 
 
 /*acquiring FILE* with FILETYPE extension for writing/reading.*/
@@ -58,9 +57,9 @@ int main(int argc, char** argv)
         /*printf("%s\n", CMD[0].cmdName); testing CMD inclusion*/
         if(firstPass(fp)){
         }
-        if(!parse2(fp)){
+        /*if(!parse2(fp)){
         
-        }
+        }*/
 
 
     }
