@@ -107,14 +107,25 @@ int isValidLabel(char line[],int index1,int index2,int lineCounter)
     int j;
     char word[MAXLABELSIZE];
     if(index2 - index1 + 1 > MAXLABELSIZE){
-        printf("")
+        printf("ERROR: label exceeds maximum length of %d ; at line: %d\n",MAXLABELSIZE-1, lineCounter);
+        return 0;
     }
     if(!isalpha(line[index1])){
-
+        printf("ERROR: label must start with a letter <a-z> or <A-Z> ; at line: %d\n",lineCounter);
+        return 0;
     }
     for(j = index1; j < index2; j++){
         if(!isalnum(line[j])){
-
+            printf("ERROR: label must start with a letter and be fully alphanumeric ; at line: %d\n",lineCounter);
+        return 0;
         }
-    if(iskeyword(line, index1, index2-1)){}
-    if(exists(line, index1, )){}
+    }
+    if(iskeyword(line, index1, index2-1)){/*TODO strncp*/
+        printf("ERROR: label canno't be a saved keyword; at line: %d\n",lineCounter);
+        return 0;
+    }
+    if(exists(line, index1,)){/*TODO strncp*/
+        printf("ERROR: Duplicate label definition ; at line: %d\n",lineCounter);
+        return 0;
+    }
+}
