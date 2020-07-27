@@ -64,10 +64,10 @@ int firstPass(FILE* fp)
                     break;
             }
         }
-        else
+        /*else
             if(isOp(line, index1, index2)){
 
-            }
+            }*/
     }
 }
 /*checks if a given word is a saved keyword used by the assembly language.
@@ -99,7 +99,7 @@ void getWord(char* line, int* i, int* index1, int* index2)
 int isValidAsmOpt(char* line, int index1, int index2, int lineCounter)
 {
     char asmOpt[MAXOPTSIZE];
-    strncpy(asmOpt, line+index1, wordLen);
+    strncpy(asmOpt, line+index1, index2-index1+1);
 
     if(!strcmp(asmOpt, ".data"))
         return DATA;
@@ -134,7 +134,8 @@ int isValidLabel(char line[],int index1,int index2,int lineCounter)
             return 0;
         }
     }
-    strncpy(word, line+index1, wordLen);
+
+    strncpy(word, line+index1, wordLen-1);
     if(isKeyword(word)){
         printf("ERROR: label cannot be a saved keyword; at line: %d\n",lineCounter);
         return 0;
