@@ -99,8 +99,8 @@ void getWord(char* line, int* i, int* index1, int* index2)
 int isValidAsmOpt(char* line, int index1, int index2, int lineCounter)
 {
     char asmOpt[MAXOPTSIZE];
-
     strncpy(asmOpt, line+index1, wordLen);
+
     if(!strcmp(asmOpt, ".data"))
         return DATA;
     if(!strcmp(asmOpt, ".string"))
