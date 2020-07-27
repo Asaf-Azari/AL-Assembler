@@ -31,8 +31,10 @@ void addNode(node* n)
         l.head = n;
         l.tail = n;
     }
+    else{
     l.tail->nextPtr = n;
     l.tail = n;
+    }
 }
 /*Creates node to be added to list*/
 /*TOOD: check if can return by value. probably not considering it should be freed as scope ends*/
@@ -43,7 +45,7 @@ void addLabel(char* nodeLabel, unsigned char isData, unsigned char isExtern, uns
     newNode->isData = isData;
     newNode->isExtern = isExtern;
     newNode->address = address;
-    addNode(&newNode);
+    addNode(newNode);
 }
 
 
