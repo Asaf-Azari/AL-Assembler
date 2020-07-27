@@ -50,8 +50,9 @@ int main(int argc, char** argv)
         return 0;/*TODO: Return 1?*/
     }
     for(i = 1; i < argc; ++i){/*Main program loop*/
+        clearSymbolTable();
         if(!(fp = getFile(argv[i], AS))){/*TODO: fclose after done? */
-           printf("ERROR: Cannot open input file\n");
+           printf("ERROR: Cannot open input file: %s.as skipping \n", argv[i]);
         }
         
         /*printf("%s\n", CMD[0].cmdName); testing CMD inclusion*/

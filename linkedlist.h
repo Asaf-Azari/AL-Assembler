@@ -1,6 +1,7 @@
+#define MAXLABELSIZE 32
 typedef struct node{
     struct node*  nextPtr;
-    char*         label;
+    char         label[MAXLABELSIZE];
     unsigned char isData;
     unsigned char isExtern;
     unsigned int  address;/*TODO: maybe signed*/
@@ -11,5 +12,5 @@ typedef struct list{
 } list;
 
 int exists(char* newLabel);
-void appendNode(node* n);
+void addLabel(char* nodeLabel, unsigned char isData, unsigned char isExtern, unsigned int address);
 void clearAndInitList();

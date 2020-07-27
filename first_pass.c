@@ -3,6 +3,8 @@
 #include <string.h>
 #include "linkedlist.h"
 #include "first_pass.h"
+#include "asm_tables.h"
+
 
 #define MAX_LINE_LENGTH 80 /*TODO: move to another file*/
 #define TRUE 1
@@ -24,8 +26,8 @@ int firstPass(FILE* fp)
         lineLen = strlen(line);
         ++lineCounter;
 
-        while(isspace(line[i])) ++i;
-        if(line[i] == ';' || line[i] == '\0'){
+        while(isspace(line[i])) ++i; /*skipping leading whitespaces*/
+        if(line[i] == ';' || line[i] == '\0'){/*skipping line if empty/comment*/
             continue;
         }
 
@@ -38,6 +40,7 @@ int firstPass(FILE* fp)
             }
             else{
                 errorFlag = TRUE;
+                continue; 
             }
         }
         if(line[index1] == '.'){
@@ -128,15 +131,18 @@ int isValidLabel(char line[],int index1,int index2,int lineCounter)
         }
     }
 
-    strncpy(word, line+index1, wordLen-1);
+    strncpy(word, line+index1, wordLen-1);/*copying the label without ':' for comparing against keywords and previous labels*/
     if(isKeyword(word)){
         printf("ERROR: label cannot be a saved keyword ; at line: %d\n",lineCounter);
         return 0;
     }
-    /*TODO:Need to decide where we declare our linked list and wheter we pass it on here
-     * or make it global. probably the former?*/
     if(exists(word)){
         printf("ERROR: Duplicate label definition ; at line: %d\n",lineCounter);
         return 0;
     }
+    return 1; /*Valid label*/
+}
+int isOp(char* line, int index1, int index2)
+{
+
 }

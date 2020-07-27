@@ -8,7 +8,7 @@
 /*TODO: move MAXADDRESS?*/
 #define MAXADDRESS 2097151
 #include <string.h>
-#include "linkedlist.h"
+#include "linkedlist.h" /* TODO: change to symboltable.h maybe?*/
 
 static list l;
 /*TODO: Generally test functions.
@@ -23,16 +23,9 @@ int exists(char newLabel[])
     }
     return 0;
 }
-/*Creates node to be added to list*/
-/*TOOD: check if can return by value. probably not considering it should be freed as scope ends*/
-node* createNode(char* nodeLabel, unsigned char nodeProperties, unsigned int address)
-{
-    node* newNode = (node*) malloc(sizeof(node));
-    newNode->label = nodeLabel;
-}
 
 /*append node to the list, if the list is empty, appoint node as head*/
-void addLabel(node* n)
+void addNode(node* n)
 {
     if(l.head == NULL){
         l.head = n;
@@ -41,7 +34,20 @@ void addLabel(node* n)
     l.tail->nextPtr = n;
     l.tail = n;
 }
-void clearAndInitList()
+/*Creates node to be added to list*/
+/*TOOD: check if can return by value. probably not considering it should be freed as scope ends*/
+void addLabel(char* nodeLabel, unsigned char isData, unsigned char isExtern, unsigned int address)
+{
+    node* newNode = (node*) malloc(sizeof(node));
+    strcpy(newNode->label, nodeLabel);
+    newNode->isData = isData;
+    newNode->isExtern = isExtern;
+    newNode->address = address;
+    addNode(&newNode);
+}
+
+
+void clearSymbolTable()
 {
     node* current;
     node* n = l.head;
