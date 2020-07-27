@@ -10,11 +10,12 @@
 #include <string.h>
 #include "linkedlist.h"
 
+static list l;
 /*TODO: Generally test functions.
 /*Checks if label exists in symbol table*/
-int exists(list* l, char* newLabel)
+int exists(char newLabel[])
 {
-    node* currentNode = l->head;
+    node* currentNode = l.head;
     while(currentNode != NULL){
         if(!strcmp(currentNode->label, newLabel))
             return 1;
@@ -23,21 +24,32 @@ int exists(list* l, char* newLabel)
     return 0;
 }
 /*Creates node to be added to list*/
-/*TOOD: check if can return by value. probably not considering it should be freed as scope ends
- *TODO: remember to check that label isn't one of the saved keywords i.e r1, r2 etc.*/
-/*node* createNode(char* nodeLabel, unsigned char nodeProperties, unsigned int address)
+/*TOOD: check if can return by value. probably not considering it should be freed as scope ends*/
+node* createNode(char* nodeLabel, unsigned char nodeProperties, unsigned int address)
 {
     node* newNode = (node*) malloc(sizeof(node));
     newNode->label = nodeLabel;
-}*/
+}
 
 /*append node to the list, if the list is empty, appoint node as head*/
-void appendNode(list* l, node* n)
+void addLabel(node* n)
 {
-    if(l->head == NULL){
-        l->head = n;
-        l->tail = n;
+    if(l.head == NULL){
+        l.head = n;
+        l.tail = n;
     }
-    l->tail->nextPtr = n;
-    l->tail = n;
+    l.tail->nextPtr = n;
+    l.tail = n;
+}
+void clearAndInitList()
+{
+    node* current;
+    node* n = l.head;
+    while(n != NULL){
+        current = n;
+        n = n->nextPtr;
+        free(current);
+    }
+    l.tail = NULL;
+    l.head = NULL;
 }

@@ -57,10 +57,10 @@ int firstPass(FILE* fp)
                     break;
             }
         }
-        /*else
+        else
             if(isOp(line, index1, index2)){
 
-            }*/
+            }
     }
 }
 /*checks if a given word is a saved keyword used by the assembly language.

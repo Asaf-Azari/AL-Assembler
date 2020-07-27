@@ -10,5 +10,6 @@ typedef struct list{
     node* tail;
 } list;
 
-int exists(list* l, char* newLabel);
-void appendNode(list* l, node* n);
+int exists(char* newLabel);
+void appendNode(node* n);
+void clearAndInitList();
