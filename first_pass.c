@@ -29,15 +29,8 @@ int firstPass(FILE* fp)
             continue;
         }
 
-        index1 = i;
-        while(!isspace(line[i]) && line[i] != '\0') ++i;/*TODO: Might need to check for '\0' after?*/
-        index2 = i-1;
+        getWord(line, &i, &index1, &index2);
 
-    /*isValidLabel:
-    check for valid name
-    check if already in list
-    check if saved keyword
-    */
         if(line[index2] == ':'){
             if (isValidLabel(line, index1, index2, lineCounter)){
                 labelFlag = TRUE;
@@ -130,14 +123,14 @@ int isValidLabel(char line[],int index1,int index2,int lineCounter)
     }
     for(j = index1; j < index2; j++){
         if(!isalnum(line[j])){
-            printf("ERROR: label must start with a letter and be fully alphanumeric ; at line: %d\n",lineCounter);
+            printf("ERROR: label must be fully alphanumeric and start with a letter ; at line: %d\n",lineCounter);
             return 0;
         }
     }
 
     strncpy(word, line+index1, wordLen-1);
     if(isKeyword(word)){
-        printf("ERROR: label cannot be a saved keyword; at line: %d\n",lineCounter);
+        printf("ERROR: label cannot be a saved keyword ; at line: %d\n",lineCounter);
         return 0;
     }
     /*TODO:Need to decide where we declare our linked list and wheter we pass it on here
