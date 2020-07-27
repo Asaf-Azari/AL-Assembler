@@ -33,12 +33,11 @@ int firstPass(FILE* fp)
         while(!isspace(line[i]) && line[i] != '\0') ++i;/*TODO: Might need to check for '\0' after?*/
         index2 = i-1;
 
-/*isValidLabel:
-check for valid name
-check if already in list
-check if saved keyword
-*/
-
+    /*isValidLabel:
+    check for valid name
+    check if already in list
+    check if saved keyword
+    */
         if(line[index2] == ':'){
             if (isValidLabel(line, index1, index2, lineCounter)){
                 labelFlag = TRUE;
@@ -60,15 +59,15 @@ check if saved keyword
                 case ENTRY:
                     break;
                 case EXTERN:
-                break;
-
+                    break;
+                default:
+                    break;
             }
         }
         else
             if(isOp(line, index1, index2)){
 
             }
-
     }
 }
 /*checks if a given word is a saved keyword used by the assembly language.
@@ -77,7 +76,7 @@ int isKeyword(char* word, int wordLen)
 {
 	/*TODO: Asaf needs to look to confirm that I didn't miss any.*/
 	switch(wordLen){
-		case 3:
+        case 3:/*TODO: possibly implement isOp and use here instead?*/
 			if(!strcmp(word, "mov") ||
 			   !strcmp(word, "cmp") ||
 			   !strcmp(word, "add") ||
@@ -145,6 +144,8 @@ int isValidAsmOpt(char* line, int index1, int index2, int lineCounter)
         return ENTRY;
     if(!strcmp(asmOpt, ".extern"))
         return EXTERN;
+    printf("ERROR: invalid assembler instruction at line: %d\n", lineCounter);
+    return ERROR;
 }
 /*asserts that a given label is a valid label.
  *a label can have up to 31 characters, begin with a letter 
@@ -153,7 +154,8 @@ int isValidLabel(char line[],int index1,int index2,int lineCounter)
 {
     int j;
     char word[MAXLABELSIZE];
-    if(index2 - index1 + 1 > MAXLABELSIZE){
+    int wordLen = index2 - index1 + 1;
+    if(wordLen > MAXLABELSIZE){
         printf("ERROR: label exceeds maximum length of %d ; at line: %d\n",MAXLABELSIZE-1, lineCounter);
         return 0;
     }
@@ -164,11 +166,11 @@ int isValidLabel(char line[],int index1,int index2,int lineCounter)
     for(j = index1; j < index2; j++){
         if(!isalnum(line[j])){
             printf("ERROR: label must start with a letter and be fully alphanumeric ; at line: %d\n",lineCounter);
-        return 0;
+            return 0;
         }
     }
-    strncpy(word, line+index1, MAXLABELSIZE);
-    if(iskeyword(word, index2-index1+1)){
+    strncpy(word, line+index1, wordLen);
+    if(isKeyword(word, wordLen)){
         printf("ERROR: label cannot be a saved keyword; at line: %d\n",lineCounter);
         return 0;
     }
