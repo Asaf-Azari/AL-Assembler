@@ -72,48 +72,17 @@ int firstPass(FILE* fp)
 }
 /*checks if a given word is a saved keyword used by the assembly language.
  *uses length of the word to avoid unnecessary strcmp.*/
-int isKeyword(char* word, int wordLen)
+int isKeyword(char* word)
 {
-	/*TODO: Asaf needs to look to confirm that I didn't miss any.*/
-	switch(wordLen){
-        case 3:/*TODO: possibly implement isOp and use here instead?*/
-			if(!strcmp(word, "mov") ||
-			   !strcmp(word, "cmp") ||
-			   !strcmp(word, "add") ||
-			   !strcmp(word, "sub") ||
-			   !strcmp(word, "lea") ||
-			   !strcmp(word, "clr") ||
-			   !strcmp(word, "not") ||
-			   !strcmp(word, "inc") ||
-			   !strcmp(word, "dec") ||
-			   !strcmp(word, "jmp") ||
-			   !strcmp(word, "bne") ||
-			   !strcmp(word, "jsr") ||
-			   !strcmp(word, "red") ||
-			   !strcmp(word, "prn") ||
-			   !strcmp(word, "rts"))
-				return TRUE;
-			break;
-		case 4:
-			if(!strcmp(word, "stop"))
-					return TRUE;
-			break;
-		case 5:
-			if(!strcmp(word, ".data"))
-				return TRUE;
-			break;
-		case 6:
-			if(!strcmp(word, ".entry"))
-				return TRUE;
-			break;
-		case 7:
-			if(!strcmp(word, ".string") ||
-			   !strcmp(word, ".extern"))
-				return TRUE;
-		default:
-			break;
-	}
-	return FALSE;
+    char* keywords[] = {"mov","cmp","add","sub","lea","clr","not","inc",
+                        "dec","jmp","bne","jsr","red","prn","rts","stop",
+                        ".data",".entry",".string",".extern",
+                        "r0","r1","r2","r3","r4","r5","r6","r7"};
+    int i, sizeArr = sizeof(keywords) / sizeof(char*);
+    for(i = 0; i < sizeArr; ++i)
+        if(!strcmp(keywords[i], word))
+            return TRUE;
+    return FALSE;
 }
 /*adjusts indicies to bound a word*/
 void getWord(char* line, int* i, int* index1, int* index2)
@@ -130,11 +99,7 @@ void getWord(char* line, int* i, int* index1, int* index2)
 int isValidAsmOpt(char* line, int index1, int index2, int lineCounter)
 {
     char asmOpt[MAXOPTSIZE];
-    int wordLen = index2 - index1 + 1;
-    if(wordLen > MAXOPTSIZE){ /*max opt size*/
-        printf("ERROR: invalid assembler instruction at line: %d\n", lineCounter);
-        return ERROR;
-    }
+
     strncpy(asmOpt, line+index1, wordLen);
     if(!strcmp(asmOpt, ".data"))
         return DATA;
@@ -170,7 +135,7 @@ int isValidLabel(char line[],int index1,int index2,int lineCounter)
         }
     }
     strncpy(word, line+index1, wordLen);
-    if(isKeyword(word, wordLen)){
+    if(isKeyword(word)){
         printf("ERROR: label cannot be a saved keyword; at line: %d\n",lineCounter);
         return 0;
     }

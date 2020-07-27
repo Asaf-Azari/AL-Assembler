@@ -1,4 +1,4 @@
-int isKeyword(char* word, int wordLen);
+int isKeyword(char* word);
 int firstPass(FILE* fp);
 void getWord(char* line, int* i, int* index1, int* index2);
 int isValidLabel(char* line, int index1, int index2, int lineCounter);
