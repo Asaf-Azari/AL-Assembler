@@ -22,6 +22,7 @@ int firstPass(FILE* fp)
     char labelFlag;
 
     while(fgets(line, MAX_LINE_LENGTH + 2, fp)){
+        int cmdIndex;
         labelFlag = FALSE;
         lineLen = strlen(line);
         ++lineCounter;
@@ -49,20 +50,20 @@ int firstPass(FILE* fp)
                     errorFlag = TRUE;
                     continue;
                     break;
-                case DATA:
+                case DATA:/*validate and if labelFlag, add to table*/
                     break;
-                case STRING:
+                case STRING:/*validate and if labelFlag, add to table*/
                     break;
-                case ENTRY:
+                case ENTRY:/*Ignore, only on second pass*/
                     break;
-                case EXTERN:
+                case EXTERN:/*isValidlabel and insert into table if not.*/
                     break;
                 default:
                     break;
             }
         }
         else
-            if(isOp(line, index1, index2)){
+            if((cmdIndex = isOp(line, index1, index2)) != -1){
 
             }
     }
@@ -95,7 +96,7 @@ void getWord(char* line, int* i, int* index1, int* index2)
  *Must be one of the following: .data, .string, .entry, .extern*/
 int isValidAsmOpt(char* line, int index1, int index2, int lineCounter)
 {
-    char asmOpt[MAXOPTSIZE]; /*TODO: wont you get undefined behevior if the word is longer? better set it to max line length no?*/
+    char asmOpt[MAX_LINE_LENGTH + 2]; /*TODO: wont you get undefined behevior if the word is longer? better set it to max line length no?*/
     strncpy(asmOpt, line+index1, index2-index1+1);
 
     if(!strcmp(asmOpt, ".data"))
@@ -112,6 +113,8 @@ int isValidAsmOpt(char* line, int index1, int index2, int lineCounter)
 /*asserts that a given label is a valid label.
  *a label can have up to 31 characters, begin with a letter 
  *from the range <a-z>/<A-Z> and must be fully alphanumeric*/
+/*TODO: need to check if existing label declared as external was previously
+ *declared as external*/
 int isValidLabel(char line[],int index1,int index2,int lineCounter)
 {
     int j;
@@ -147,11 +150,10 @@ int isOp(char* line, int index1, int index2)
 {   
     int i;
     char op[MAX_LINE_LENGTH+2];
-    int sizeArr = sizeof(CMD) / sizeof(COMMANDS); /*TODO: why is this screaming at me*/
     strncpy(op, line+index1, index2-index1+1);
-    for(i = 0; i < sizeArr; i++){
-        if (!strcmp(op,CMD[i].opCode))
-            return 1;
+    for(i = 0; CMD[i].cmdName; i++){
+        if (!strcmp(op,CMD[i].cmdName))
+            return i;  
     }
-    return 0;
+    return -1;
 }
