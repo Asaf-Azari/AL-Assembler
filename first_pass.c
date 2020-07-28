@@ -95,7 +95,7 @@ void getWord(char* line, int* i, int* index1, int* index2)
  *Must be one of the following: .data, .string, .entry, .extern*/
 int isValidAsmOpt(char* line, int index1, int index2, int lineCounter)
 {
-    char asmOpt[MAXOPTSIZE];
+    char asmOpt[MAXOPTSIZE]; /*TODO: wont you get undefined behevior if the word is longer? better set it to max line length no?*/
     strncpy(asmOpt, line+index1, index2-index1+1);
 
     if(!strcmp(asmOpt, ".data"))
@@ -144,6 +144,14 @@ int isValidLabel(char line[],int index1,int index2,int lineCounter)
     return 1; /*Valid label*/
 }
 int isOp(char* line, int index1, int index2)
-{
-
+{   
+    int i;
+    char op[MAX_LINE_LENGTH+2];
+    int sizeArr = sizeof(CMD) / sizeof(COMMANDS); /*TODO: why is this screaming at me*/
+    strncpy(op, line+index1, index2-index1+1);
+    for(i = 0; i < sizeArr; i++){
+        if (!strcmp(op,CMD[i].opCode))
+            return 1;
+    }
+    return 0;
 }
