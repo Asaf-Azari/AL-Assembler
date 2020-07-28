@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdio.h>
+#include "symbol_table.h"
 #include "assembler.h"
 #include "asm_tables.h"
 #include "first_pass.h"

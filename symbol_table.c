@@ -8,10 +8,12 @@
 /*TODO: move MAXADDRESS?*/
 #define MAXADDRESS 2097151
 #include <string.h>
-#include "linkedlist.h" /* TODO: change to symboltable.h maybe?*/
+#include <stdlib.h>
+#include "symbol_table.h"
 
 static list l;
-/*TODO: Generally test functions.
+/*TODO: Generally test functions.*/
+
 /*Checks if label exists in symbol table*/
 int exists(char newLabel[])
 {
@@ -32,8 +34,8 @@ void addNode(node* n)
         l.tail = n;
     }
     else{
-    l.tail->nextPtr = n;
-    l.tail = n;
+        l.tail->nextPtr = n;
+        l.tail = n;
     }
 }
 /*Creates node to be added to list*/

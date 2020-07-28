@@ -13,4 +13,4 @@ typedef struct list{
 
 int exists(char* newLabel);
 void addLabel(char* nodeLabel, unsigned char isData, unsigned char isExtern, unsigned int address);
-void clearAndInitList();
+void clearSymbolTable();

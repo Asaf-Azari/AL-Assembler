@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-#include "linkedlist.h"
+#include "symbol_table.h"
 #include "first_pass.h"
 #include "asm_tables.h"
 
@@ -47,6 +47,7 @@ int firstPass(FILE* fp)
             switch(isValidAsmOpt(line, index1, index2, lineCounter)){
                 case ERROR:
                     errorFlag = TRUE;
+                    continue;
                     break;
                 case DATA:
                     break;
