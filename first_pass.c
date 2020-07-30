@@ -6,15 +6,12 @@
 #include "asm_tables.h"
 
 
-#define MAX_LINE_LENGTH 80 /*TODO: move to another file*/
 #define TRUE 1
 #define FALSE 0
-/*
-read line
-skip whitespace */
 int firstPass(FILE* fp)
 {
     char line[MAX_LINE_LENGTH + 2];
+    Token word;
     int lineCounter = 0, dataCounter = 0, instCounter = 0;
     int i = 0, lineLen;
     int index1, index2;
@@ -23,6 +20,7 @@ int firstPass(FILE* fp)
 
     while(fgets(line, MAX_LINE_LENGTH + 2, fp)){
         int cmdIndex;
+        i = 0;
         labelFlag = FALSE;
         lineLen = strlen(line);
         ++lineCounter;
@@ -33,11 +31,13 @@ int firstPass(FILE* fp)
         }
 
         getWord(line, &i, &index1, &index2);
+        storeWord(&word, line+index1, index2-index1+1);
 
         if(line[index2] == ':'){
-            if (isValidLabel(line, index1, index2, lineCounter)){
+            if (isValidLabel(word.currentWord, word.len, lineCounter)){
                 labelFlag = TRUE;
                 getWord(line, &i, &index1, &index2);
+                storeWord(&word, line+index1, index2-index1+1);
             }
             else{
                 errorFlag = TRUE;
@@ -45,7 +45,7 @@ int firstPass(FILE* fp)
             }
         }
         if(line[index1] == '.'){
-            switch(isValidAsmOpt(line, index1, index2, lineCounter)){
+            switch(isValidAsmOpt(word.currentWord, lineCounter)){
                 case ERROR:
                     errorFlag = TRUE;
                     continue;
@@ -63,7 +63,7 @@ int firstPass(FILE* fp)
             }
         }
         else
-            if((cmdIndex = isOp(line, index1, index2)) != -1){
+            if((cmdIndex = isOp(word.currentWord)) != -1){
 
             }
     }
@@ -92,13 +92,16 @@ void getWord(char* line, int* i, int* index1, int* index2)
         ++*i;
     *index2 = *i-1;
 }
+void storeWord(Token* t, char* line, int len)
+{
+    t->len = len;
+    strncpy(t->currentWord, line, len);
+    t->currentWord[len] = '\0';/*Apparently strncpy doesn't append a null byte*/
+}
 /*asserts that word is a valid assembly instruction.
  *Must be one of the following: .data, .string, .entry, .extern*/
-int isValidAsmOpt(char* line, int index1, int index2, int lineCounter)
+int isValidAsmOpt(char* asmOpt, int lineCounter)
 {
-    char asmOpt[MAX_LINE_LENGTH + 2]; /*TODO: wont you get undefined behevior if the word is longer? better set it to max line length no?*/
-    strncpy(asmOpt, line+index1, index2-index1+1);
-
     if(!strcmp(asmOpt, ".data"))
         return DATA;
     if(!strcmp(asmOpt, ".string"))
@@ -115,27 +118,25 @@ int isValidAsmOpt(char* line, int index1, int index2, int lineCounter)
  *from the range <a-z>/<A-Z> and must be fully alphanumeric*/
 /*TODO: need to check if existing label declared as external was previously
  *declared as external*/
-int isValidLabel(char line[],int index1,int index2,int lineCounter)
+int isValidLabel(char* word, int wordLen, int lineCounter)
 {
-    int j;
-    char word[MAXLABELSIZE];
-    int wordLen = index2 - index1 + 1;
+    int i;
+    wordLen -= 1;/*excluding ':', TODO: change MAXLABELSIZE? I think we should have at most 31 characters excluding ':'?*/
+    word[wordLen] = '\0';
     if(wordLen > MAXLABELSIZE){
         printf("ERROR: label exceeds maximum length of %d ; at line: %d\n",MAXLABELSIZE-1, lineCounter);
         return 0;
     }
-    if(!isalpha(line[index1])){
+    if(!isalpha(word[0])){
         printf("ERROR: label must start with a letter <a-z> or <A-Z> ; at line: %d\n",lineCounter);
         return 0;
     }
-    for(j = index1; j < index2; j++){
-        if(!isalnum(line[j])){
+    for(i = 0; i < wordLen; i++){/*-1 to avoid ':*/
+        if(!isalnum(word[i])){
             printf("ERROR: label must be fully alphanumeric and start with a letter ; at line: %d\n",lineCounter);
             return 0;
         }
     }
-
-    strncpy(word, line+index1, wordLen-1);/*copying the label without ':' for comparing against keywords and previous labels*/
     if(isKeyword(word)){
         printf("ERROR: label cannot be a saved keyword ; at line: %d\n",lineCounter);
         return 0;
@@ -146,11 +147,9 @@ int isValidLabel(char line[],int index1,int index2,int lineCounter)
     }
     return 1; /*Valid label*/
 }
-int isOp(char* line, int index1, int index2)
+int isOp(char* op)
 {   
     int i;
-    char op[MAX_LINE_LENGTH+2];
-    strncpy(op, line+index1, index2-index1+1);
     for(i = 0; CMD[i].cmdName; i++){
         if (!strcmp(op,CMD[i].cmdName))
             return i;  
