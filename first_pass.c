@@ -131,7 +131,7 @@ int isValidLabel(char* word, int wordLen, int lineCounter)
         printf("ERROR: label must start with a letter <a-z> or <A-Z> ; at line: %d\n",lineCounter);
         return 0;
     }
-    for(i = 0; i < wordLen; i++){/*-1 to avoid ':*/
+    for(i = 0; i < wordLen; i++){
         if(!isalnum(word[i])){
             printf("ERROR: label must be fully alphanumeric and start with a letter ; at line: %d\n",lineCounter);
             return 0;
