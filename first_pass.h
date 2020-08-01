@@ -1,6 +1,6 @@
 #include <stdio.h>
 #define MAX_LINE_LENGTH 80 /*TODO: move to another file*/
-#define MAXLABELSIZE 32
+#define MAXLABELSIZE 31
 #define MAXOPTSIZE 7
 typedef struct{/*current word length and array to hold.
         *We're doing alot of copying in validation functions where

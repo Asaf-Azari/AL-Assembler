@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
 #include "symbol_table.h"
 #include "first_pass.h"
 #include "asm_tables.h"
@@ -54,7 +55,7 @@ int firstPass(FILE* fp)
                     break;
                 case STRING:/*validate and if labelFlag, add to table*/
                     break;
-                case ENTRY:/*Ignore, only on second pass*/
+                case ENTRY:/*Ignore, only on second pass*/ /*need to validate rest of line? https://opal.openu.ac.il/mod/ouilforum/discuss.php?d=2858172&p=6847092#p6847092*/ 
                     break;
                 case EXTERN:/*isValidlabel and insert into table if not.*/
                     break;
@@ -121,10 +122,10 @@ int isValidAsmOpt(char* asmOpt, int lineCounter)
 int isValidLabel(char* word, int wordLen, int lineCounter)
 {
     int i;
-    wordLen -= 1;/*excluding ':', TODO: change MAXLABELSIZE? I think we should have at most 31 characters excluding ':'?*/
+    wordLen -= 1;/*excluding ':'*/
     word[wordLen] = '\0';
     if(wordLen > MAXLABELSIZE){
-        printf("ERROR: label exceeds maximum length of %d ; at line: %d\n",MAXLABELSIZE-1, lineCounter);
+        printf("ERROR: label exceeds maximum length of %d ; at line: %d\n",MAXLABELSIZE, lineCounter);
         return 0;
     }
     if(!isalpha(word[0])){
