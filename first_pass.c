@@ -47,17 +47,29 @@ int firstPass(FILE* fp)
         }
         if(line[index1] == '.'){
             switch(isValidAsmOpt(word.currentWord, lineCounter)){
+                int dataArgs;
                 case ERROR:
                     errorFlag = TRUE;
                     continue;
                     break;
                 case DATA:/*validate and if labelFlag, add to table*/
+                    index1 = index2;
+                    while(line[index2]!= '\0'){
+                        if(line[index2]==',')
+                            ++dataArgs;
+                    }
+                    ++dataArgs; /* number of colons is one less than arguments*/
+                    if(labelFlag)
+                    addLabel(char* nodeLabel /*TODO: add label variable*/, TRUE, FALSE, dataCounter);
+                    dataCounter += dataArgs;
                     break;
                 case STRING:/*validate and if labelFlag, add to table*/
+                    /*find both " and count characters?"*/
                     break;
                 case ENTRY:/*Ignore, only on second pass*/ /*need to validate rest of line? https://opal.openu.ac.il/mod/ouilforum/discuss.php?d=2858172&p=6847092#p6847092*/ 
                     break;
                 case EXTERN:/*isValidlabel and insert into table if not.*/
+                    /*exist and extern*/
                     break;
                 default:
                     break;
@@ -142,10 +154,10 @@ int isValidLabel(char* word, int wordLen, int lineCounter)
         printf("ERROR: label cannot be a saved keyword ; at line: %d\n",lineCounter);
         return 0;
     }
-    if(exists(word)){
+   /* if(exists(word)){
         printf("ERROR: Duplicate label definition ; at line: %d\n",lineCounter);
         return 0;
-    }
+    }*/
     return 1; /*Valid label*/
 }
 int isOp(char* op)

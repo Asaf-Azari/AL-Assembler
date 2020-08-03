@@ -4,6 +4,7 @@ typedef struct node{
     char         label[MAXLABELSIZE];
     unsigned char isData;
     unsigned char isExtern;
+    unsigned char isEntry;
     unsigned int  address;/*TODO: maybe signed*/
 } node;
 typedef struct list{

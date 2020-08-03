@@ -26,6 +26,17 @@ int exists(char newLabel[])
     return 0;
 }
 
+int isExtern(char newLabel[])
+{
+    node* currentNode = l.head;
+    while(currentNode != NULL){
+        if(!strcmp(currentNode->label, newLabel))
+            return currentNode->isExtern; /*TODO: make sure this returns by value*/ 
+        currentNode = currentNode->nextPtr;
+    }
+    return 0;
+}
+
 /*append node to the list, if the list is empty, appoint node as head*/
 void addNode(node* n)
 {
@@ -47,6 +58,7 @@ void addLabel(char* nodeLabel, unsigned char isData, unsigned char isExtern, uns
     newNode->isData = isData;
     newNode->isExtern = isExtern;
     newNode->address = address;
+    newNode->isEntry = FALSE; /*TODO: function to change a nodes status as enry as it is only added at the second pass*/
     addNode(newNode);
 }
 
