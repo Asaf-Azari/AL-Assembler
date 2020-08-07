@@ -1,7 +1,4 @@
 #include <stdio.h>
-#define MAX_LINE_LENGTH 80 /*TODO: move to another file*/
-#define MAXLABELSIZE 31
-#define MAXOPTSIZE 7
 typedef struct{/*current word length and array to hold.
         *We're doing alot of copying in validation functions where
         *we can just store it once and pass it on to them,
@@ -24,3 +21,7 @@ void storeWord(Token* t, char* line, int len);
 int isValidLabel(char* word, int wordLen, int lineCounter);
 int isValidAsmOpt(char* asmOpt, int lineCounter);
 int isOp(char* op);
+int isNum(const char* line, int start, int end, int cmdIdx, int lineCounter);
+int isReg(const char* line, int start, int end);
+int consumeComma(const char* line, int* i);
+int boundOp(const char* line, int* i);

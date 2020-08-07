@@ -1,7 +1,7 @@
-#define MAXLABELSIZE 32
+#define MAXLABELSIZE 31
 typedef struct node{
     struct node*  nextPtr;
-    char         label[MAXLABELSIZE];
+    char          label[MAXLABELSIZE];
     unsigned char isData;
     unsigned char isExtern;
     unsigned int  address;/*TODO: maybe signed*/
