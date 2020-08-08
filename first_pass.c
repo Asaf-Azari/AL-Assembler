@@ -18,7 +18,7 @@ int firstPass(FILE* fp)
     int index1, index2;
     char errorFlag = FALSE;
     char labelFlag;
-    char labelTemp[MAXLABELSIZE+1]; /*for adding the label to the symbol table later*/
+    char labelTemp[MAXLABELSIZE+1]; /*for adding the label to the symbol table later TODO: maybe use a token?*/
 
     while(fgets(line, MAX_LINE_LENGTH + 2, fp)){
         int cmdIndex;
@@ -38,7 +38,9 @@ int firstPass(FILE* fp)
         if(line[index2] == ':'){
             if (isValidLabel(word.currentWord, word.len, lineCounter)){
                 labelFlag = TRUE;
-                /*strncpy(labelTemp, word.currentWord);TODO: finish this */
+                strncpy(labelTemp , word.currentWord,word.len);
+                labelTemp[word.len-1] = '\0';
+
                 getWord(line, &i, &index1, &index2);
                 storeWord(&word, line+index1, index2-index1+1);
             }
@@ -63,11 +65,18 @@ int firstPass(FILE* fp)
                     }
                     ++dataArgs; /* number of colons is one less than arguments*/
                     if(labelFlag)
-                    addLabel(char* nodeLabel /*TODO: add label variable*/, TRUE, FALSE, dataCounter);
+                    addLabel(labelTemp, TRUE, FALSE, dataCounter);
                     dataCounter += dataArgs;
                     break;
                 case STRING:/*validate and if labelFlag, add to table*/
-                    /*find both " and count characters?"*/
+                    index1 = index2;
+                    index2 = lineLen-1;
+                    while(isspace(line[index1]))
+                        index1++;
+                    while(isspace(line[index2]))
+                        index2--;
+                    if(!line[index1]=='"'||!line[index2]=='"' || index1 == index2)
+                    /*TODO:error*/
                     break;
                 case ENTRY:/*Ignore, only on second pass*/ /*need to validate rest of line? https://opal.openu.ac.il/mod/ouilforum/discuss.php?d=2858172&p=6847092#p6847092*/ 
                     break;
