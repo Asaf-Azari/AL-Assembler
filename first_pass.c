@@ -47,7 +47,7 @@ int firstPass(FILE* fp)
         }
         if(line[index1] == '.'){
             switch(isValidAsmOpt(word.currentWord, lineCounter)){
-                int dataArgs;
+                int dataArgs = 0;
                 case ERROR:
                     errorFlag = TRUE;
                     continue;
@@ -57,6 +57,7 @@ int firstPass(FILE* fp)
                     while(line[index2]!= '\0'){
                         if(line[index2]==',')
                             ++dataArgs;
+                        index2++;
                     }
                     ++dataArgs; /* number of colons is one less than arguments*/
                     if(labelFlag)
