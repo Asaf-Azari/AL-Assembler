@@ -18,6 +18,7 @@ int firstPass(FILE* fp)
     int index1, index2;
     char errorFlag = FALSE;
     char labelFlag;
+    char labelTemp[MAXLABELSIZE+1]; /*for adding the label to the symbol table later*/
 
     while(fgets(line, MAX_LINE_LENGTH + 2, fp)){
         int cmdIndex;
@@ -37,6 +38,7 @@ int firstPass(FILE* fp)
         if(line[index2] == ':'){
             if (isValidLabel(word.currentWord, word.len, lineCounter)){
                 labelFlag = TRUE;
+                /*strncpy(labelTemp, word.currentWord);TODO: finish this */
                 getWord(line, &i, &index1, &index2);
                 storeWord(&word, line+index1, index2-index1+1);
             }
