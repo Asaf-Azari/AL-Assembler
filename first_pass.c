@@ -9,6 +9,9 @@
 
 #define TRUE 1
 #define FALSE 0
+/*TODO: move to some constants header*/
+#define ASM_MIN_INT -1048576
+#define ASM_MAX_INT  1048575
 int firstPass(FILE* fp)
 {
     char line[MAX_LINE_LENGTH + 2];
@@ -91,12 +94,14 @@ int firstPass(FILE* fp)
                      *problem is that words after an opword can be delimited by ',' aswell as whitespace.
                      *would probably make it clearer to use one function to bound words but it seems like the usage differ?
                      *also it doesn't seem like there's a benefit to store words while parsing operands*/
+                    /*TODO: switch to splitting comma method.*/
                     while(line[wordStart = boundOp(line, &i)]){
                         /*TODO:is the while condition legal? precednce of function call?*/
                         int commaRead = 0;
                         switch(line[wordStart]){
                             case '#':
                                 ++wordStart;/*Skip '#'*/
+                                /*TODO: possibly overwriting errorFlag's TRUE to FALSE.*/
                                 lineError = (errorFlag = !isNum(line, wordStart, i, cmdIndex, lineCounter));
                                 break;
                             case 'r':/*TODO: Swap implementation with wordStart implementation.*/
@@ -153,25 +158,24 @@ int firstPass(FILE* fp)
     }/*End while*/
 }
 /*Checks if a given bounded word is a number*/
-int isNum(const char* line, int start, int end, int cmdIdx, int lineCounter)/*TODO: currently does not check for range. probably should check in second pass?*/
+/*TODO: do we need to give a specific error for out of range numbers?*/
+int isNum(const char* line)
 {
-    if(start != end && (line[start] == '+' || line[start] == '-'))
-        ++start;
-    while(start != end && isdigit(line[start]))/*While reading digits*/
-        ++start;
-    if(line[start-1] == '+' || line[start-1] == '-' || line[start-1] == '#'){
-        printf("ERROR: no digits after number notation ; at line: %d\n", lineCounter);
+    char** numSuffix;
+    char c;
+    long int num = strtol(line, numSuffix, 10);
+    /*strtol manpage: "If there were no digits at all, strtol() stores the 
+     *original value of nptr in *endptr (and returns 0)."*/
+    if(line == *numSuffix){
         return FALSE;
     }
-    else if(start != end){
-        printf("ERROR: invalid number ; at line: %d\n", lineCounter);
+    if(num < ASM_MIN_INT || num > ASM_MAX_INT){
         return FALSE;
     }
-    if(!(CMD[cmdIdx].viableOperands & OP1_IMMEDIATE)){
-        printf("ERROR: command \"%s\" does not take number as operand ; at line: %d\n",
-                CMD[cmdIdx].cmdName,
-                lineCounter);
-        return FALSE;
+    while(**numSuffix != '\0'){
+        if(!isspace(**numSuffix) && **numSuffix != ',')
+            return FALSE;
+        ++*numSuffix;
     }
     return TRUE;
 }
