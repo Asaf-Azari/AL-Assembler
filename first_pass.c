@@ -67,70 +67,139 @@ int firstPass(FILE* fp)
         }
         else if((cmdIndex = isOp(word.currentWord)) != -1){
             int lineError = FALSE;
-            int start = i;
-            int commas = 0;
-            int commaIndex = -1;
+            int start = i;/*index pointing to first operand*/
+            int wordIdx;
+            int commas = 0;/*Counting commas*/
+            int commaIndex = -1;/*index pointing to comma*/
+            int params = CMD[cmdIndex].numParams;/*number of operands for the command*/
+            int addInst = 0;/*TODO: need to check for additional memory words to be added due to labels being used as operands*/
             while(isspace(line[i]))
                     ++i;
-            if(CMD[cmdIndex].numParams == 0 && line[i] != '\0'){/*Paramaters given to 0 param command*/
+            if(params == 0 && line[i] != '\0'){/*operands given to 0 operand command*/
                     printf("ERROR: command \"%s\" does not take operands ; at line: %d\n", CMD[cmdIndex].cmdName, lineCounter);
                     errorFlag = TRUE;
                     continue;
             }
+            else if(params != 0 && line[i] == '\0'){/*No operands given*/
+                    printf("ERROR: command \"%s\" takes %d operands ; at line: %d\n", 
+                            CMD[cmdIndex].cmdName,
+                            params,
+                            lineCounter);
+                    errorFlag = TRUE;
+                    
+                    continue;
+            }
             while(line[i]){
-                if(line[i] == ','){
+                if(line[i] == ','){/*Counting commas in line*/
                     ++commas;
                     commaIndex = i;
                 }
                 i++;
             }
-            if(CMD[cmdIndex].numParams == 1 && commas > 0){
+            if(params == 1 && commas > 0){
                 errorFlag = lineError = TRUE;
                 printf("ERROR: command \"%s\" accepts 1 operand, extranous comma ; at line: %d\n",
                 CMD[cmdIndex].cmdName,
                 lineCounter);
+
                 continue;
             }
-            else if(CMD[cmdIndex].numParams == 2 && commas != 1){
+            else if(params == 2 && commas != 1){
                 errorFlag = lineError = TRUE;
-                printf("ERROR: command \"%s\" accepts 2 operands, extranous or lack of comma ; at line: %d\n",
+                printf("ERROR: command \"%s\" accepts 2 operands, %s ; at line: %d\n",
                 CMD[cmdIndex].cmdName,
+                (commas > 1) ? "extranous comma" : "missing comma",
                 lineCounter);
+
                 continue;
             }
-            if(!lineError){
-                switch(line[start]){
-                    case '#':
-                        ++start;
-                        if(!isNum(line+start)){
+            /*TODO: lineError is currently use to break out of the loop
+             *since break within the switch case isn't breaking the loop.
+             *maybe we should just switch to if else if statements?*/
+            while(params && !lineError){
+
+                wordIdx = (params == 2) ? commaIndex+1 : start;/*According to number of params, let index point to word*/
+                while(isspace(line[wordIdx]))
+                    ++wordIdx;
+                if(!singleToken(line+wordIdx)){/*If there's more than one token/no token*/
+                    printf("ERROR: invalid operand ; at line: %d\n", lineCounter);
+                    errorFlag = lineError = TRUE;
+                    break;
+                }
+
+                switch(line[wordIdx]){
+                    case '#':/*Immediate number*/
+                        ++wordIdx;/*Increment to start of number*/
+                        if(!isNum(line+wordIdx)){
                             /*TODO:error solution suggestions?*/
                             printf("ERROR: invalid number ; at line: %d\n", lineCounter);
                             errorFlag = lineError = TRUE;
                             break;
                         }
-                        if(!(CMD[cmdIndex].viableOperands & OP1_IMMEDIATE)){
-                            printf("ERROR: command \"%s\" does not take number as 1st operand ; at line: %d\n", 
+                        /*If our command does not take a number as it's 1st/2nd operand*/
+                        if(!(CMD[cmdIndex].viableOperands & (params == 1 ? OP1_IMMEDIATE : OP2_IMMEDIATE) )){
+                            printf("ERROR: command \"%s\" does not accept number as %s operand ; at line: %d\n", 
                                     CMD[cmdIndex].cmdName,
+                                    (params == 1) ? "1st" : "2nd",
                                     lineCounter);
                             errorFlag = lineError = TRUE;
                             break;
                         }
                         break;
-                    case 'r':
+                    case 'r':/*Register*/
+                        ++wordIdx;/*Increment to register number*/
+                        /*If our command doesn't take a register as it's 1st/2nd operand*/
+                        if(isReg(line+wordIdx) && (CMD[cmdIndex].viableOperands & (params == 1 ? OP1_REG : OP2_REG))){
+                            printf("ERROR: command \"%s\" does not accept register as %s operand ; at line: %d\n",
+                                    CMD[cmdIndex].cmdName,
+                                    (params == 1) ? "1st" : "2nd",
+                                    lineCounter);
+                            errorFlag = lineError = TRUE;
+                        }
                         break;
+                    case '\0':/*Missing operand/s*/
+                        printf("ERROR: command \"%s\" is missing operand\\s ; at line: %d\n",
+                                    CMD[cmdIndex].cmdName,
+                                    lineCounter);
+                        errorFlag = lineError = TRUE;
+                        break;
+                    /*TODO: add & case and validate label?*/
                     default:
+                        break;
                 }
+
+                --params;/*Decrement params to get to previous operand*/
+            }/*While end*/
+        }/*else if Op*/
+    }/*While fgets*/
+}
+int singleToken(const char* line)
+{
+    char tokenFlag = FALSE;
+    int i = 0;
+    /*TODO: currently it checks for both two words not seperated
+     *by a comma AND if we're missing an operand.
+     *do we want this sort of behaviour? tsk tsk.🤔*/
+    while(line[i] && line[i] != ','){
+        if(!isspace(line[i])){
+            if(tokenFlag)
+                return FALSE;
+            else{
+                tokenFlag = TRUE;
+                while(line[i] && !isspace(line[i]) && line[i] != ',')
+                    ++i;
+                continue;
             }
-        }/*if Op*/
         }
-    }/*End while*/
+        ++i;
+    }
+    return tokenFlag;
 }
 /*Checks if a given bounded word is a number*/
 /*TODO: do we need to give a specific error for out of range numbers?*/
 int isNum(const char* line)
 {
     char** numSuffix;
-    char c;
     long int num = strtol(line, numSuffix, 10);
     /*strtol manpage: "If there were no digits at all, strtol() stores the 
      *original value of nptr in *endptr (and returns 0)."*/
@@ -152,9 +221,9 @@ int isNum(const char* line)
     return TRUE;
 }
 /*Checks if a given bounded word is a register*/
-int isReg(const char* line, int start, int end)
+int isReg(const char* line)
 {
-    return (start != end) && (line[start+1] - '0' < 8) && (start+2 == end);
+    return ((*line - '0') < 8) && (isspace(*line+1) || (*line+1 == ','));
 }
 /*Consumes and returns number of commas between two words.
  *increments line index.*/
