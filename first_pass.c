@@ -65,95 +65,63 @@ int firstPass(FILE* fp)
                     break;
             }
         }
-        else{
-            if((cmdIndex = isOp(word.currentWord)) != -1){
-                while(isspace(line[i]))
+        else if((cmdIndex = isOp(word.currentWord)) != -1){
+            int lineError = FALSE;
+            int start = i;
+            int commas = 0;
+            int commaIndex = -1;
+            while(isspace(line[i]))
                     ++i;
-                if(CMD[cmdIndex].numParams == 0 && line[i] != '\0'){/*Paramaters given to 0 param command*/
-                        printf("ERROR: command \"%s\" does not take operands ; at line: %d\n", CMD[cmdIndex].cmdName, lineCounter);
-                        errorFlag = TRUE;
-                        continue;
+            if(CMD[cmdIndex].numParams == 0 && line[i] != '\0'){/*Paramaters given to 0 param command*/
+                    printf("ERROR: command \"%s\" does not take operands ; at line: %d\n", CMD[cmdIndex].cmdName, lineCounter);
+                    errorFlag = TRUE;
+                    continue;
+            }
+            while(line[i]){
+                if(line[i] == ','){
+                    ++commas;
+                    commaIndex = i;
                 }
-                else
-                {
-                    int lineError = FALSE;
-                    int wordStart = 0;
-                    int opRead = 0;
-                    if(line[i] == '\0'){
-                        printf("ERROR: missing operand ; at line: %d\n", lineCounter);
-                        errorFlag = TRUE;
-                        continue;
-                    }
-                    if(line[i] == ','){
-                        printf("ERROR: invalid comma before paramater ; at line: %d\n", lineCounter);
-                        errorFlag = TRUE;
-                        continue;
-                    }
-
-                    /*TODO: we were using getWord and storeWord until now to bound words.
-                     *problem is that words after an opword can be delimited by ',' aswell as whitespace.
-                     *would probably make it clearer to use one function to bound words but it seems like the usage differ?
-                     *also it doesn't seem like there's a benefit to store words while parsing operands*/
-                    /*TODO: switch to splitting comma method.*/
-                    while(line[wordStart = boundOp(line, &i)]){
-                        /*TODO:is the while condition legal? precednce of function call?*/
-                        int commaRead = 0;
-                        switch(line[wordStart]){
-                            case '#':
-                                ++wordStart;/*Skip '#'*/
-                                /*TODO: possibly overwriting errorFlag's TRUE to FALSE.*/
-                                lineError = (errorFlag = !isNum(line, wordStart, i, cmdIndex, lineCounter));
-                                break;
-                            case 'r':/*TODO: Swap implementation with wordStart implementation.*/
-                                ++wordStart;
-                                /*TODO: switch to error reporting inside function? necessitates more paramater passing but
-                                 *more aligned with isNum*/
-                                if(isReg(line, wordStart, i) && !(CMD[cmdIndex].viableOperands & OP1_REG))
-                                {
-                                    printf("ERROR: command \"%s\" does not take register as operand ; at line: %d\n",
-                                            CMD[cmdIndex].cmdName,
-                                            lineCounter);
-                                    lineError = errorFlag = TRUE;
-                                }
-                                break;
-                            /*TODO: case '&'?*/
-                            default:
-                                break;
-                        }
-                        if(lineError)/*TODO: switch to some other way of exiting the boundOp loop and go to the next line.*/
-                            break;
-                        ++opRead;
-                        if(CMD[cmdIndex].numParams == opRead){/*If we read enough operands*/
-                            while(line[i] != '\0'){/*Check for extranous text*/
-                                if(!isspace(line[i])){
-                                    printf("ERROR: extranous text after operands ; at line: %d\n", lineCounter);
-                                    errorFlag = TRUE;
-                                    break;
-                                }
-                                ++i;
-                            }
-                            break;/*Break either way, if there's an error we report and break, if there isn't we reached the end.*/
-                        }
-                        commaRead = consumeComma(line, &i);
-                        if(commaRead > 1){
-                            printf("ERROR: repeating commas ; at line: %d\n", lineCounter);
-                            errorFlag = TRUE;
+                i++;
+            }
+            if(CMD[cmdIndex].numParams == 1 && commas > 0){
+                errorFlag = lineError = TRUE;
+                printf("ERROR: command \"%s\" accepts 1 operand, extranous comma ; at line: %d\n",
+                CMD[cmdIndex].cmdName,
+                lineCounter);
+                continue;
+            }
+            else if(CMD[cmdIndex].numParams == 2 && commas != 1){
+                errorFlag = lineError = TRUE;
+                printf("ERROR: command \"%s\" accepts 2 operands, extranous or lack of comma ; at line: %d\n",
+                CMD[cmdIndex].cmdName,
+                lineCounter);
+                continue;
+            }
+            if(!lineError){
+                switch(line[start]){
+                    case '#':
+                        ++start;
+                        if(!isNum(line+start)){
+                            /*TODO:error solution suggestions?*/
+                            printf("ERROR: invalid number ; at line: %d\n", lineCounter);
+                            errorFlag = lineError = TRUE;
                             break;
                         }
-                        else if(commaRead == 0 && CMD[cmdIndex].numParams > 1){
-                            printf("ERROR: missing comma between operands ; at line: %d\n", lineCounter);
-                            errorFlag = TRUE;
+                        if(!(CMD[cmdIndex].viableOperands & OP1_IMMEDIATE)){
+                            printf("ERROR: command \"%s\" does not take number as 1st operand ; at line: %d\n", 
+                                    CMD[cmdIndex].cmdName,
+                                    lineCounter);
+                            errorFlag = lineError = TRUE;
                             break;
                         }
-                    }
-                    if(opRead < CMD[cmdIndex].numParams){/*not enough operands*/
-                        printf("ERROR: command \"%s\" is missing an operand ; at line: %d\n", 
-                                CMD[cmdIndex].cmdName,
-                                lineCounter);
-                        errorFlag = TRUE;
-                    }
-                }/*Op, reading operands*/
-            }/*if Op*/
+                        break;
+                    case 'r':
+                        break;
+                    default:
+                }
+            }
+        }/*if Op*/
         }
     }/*End while*/
 }
@@ -173,8 +141,12 @@ int isNum(const char* line)
         return FALSE;
     }
     while(**numSuffix != '\0'){
-        if(!isspace(**numSuffix) && **numSuffix != ',')
-            return FALSE;
+        if(!isspace(**numSuffix)){
+            if(**numSuffix == ',')
+                return TRUE;
+            else
+                return FALSE;
+        }
         ++*numSuffix;
     }
     return TRUE;
