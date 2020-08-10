@@ -17,17 +17,19 @@ int firstPass(FILE* fp)
     char line[MAX_LINE_LENGTH + 2];
     Token word;/*Struct holding current word and its' length*/
     int lineCounter = 0, dataCounter = 0, instCounter = 0;
-    int i = 0;
+    int i = 0, lineLen;
     int index1, index2;
     char errorFlag = FALSE;
     char labelFlag;
     char labelTemp[MAXLABELSIZE+1]; /*for adding the label to the symbol table later TODO: maybe use a token?*/
+    
 
     while(fgets(line, MAX_LINE_LENGTH + 2, fp)){/*Parsing lines*/
         int cmdIndex;/*Index holding place inside CMD array*/
         i = 0; 
         labelFlag = FALSE;
         ++lineCounter;
+        lineLen = strlen(line);
 
         while(isspace(line[i])) ++i; /*skipping leading whitespaces*/
         if(line[i] == ';' || line[i] == '\0'){/*skipping line if empty/comment*/
