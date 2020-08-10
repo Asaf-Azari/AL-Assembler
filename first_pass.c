@@ -65,7 +65,7 @@ int firstPass(FILE* fp)
                     }
                     ++dataArgs; /* number of colons is one less than arguments*/
                     if(labelFlag)
-                    addLabel(labelTemp, TRUE, FALSE, dataCounter);
+                        addLabel(labelTemp, TRUE, FALSE, dataCounter);
                     dataCounter += dataArgs;
                     break;
                 case STRING:/*validate and if labelFlag, add to table*/
@@ -75,13 +75,26 @@ int firstPass(FILE* fp)
                         index1++;
                     while(isspace(line[index2]))
                         index2--;
-                    if(!line[index1]=='"'||!line[index2]=='"' || index1 == index2)
-                    /*TODO:error*/
+                    if(!line[index1]!='"'||line[index2]!='"' || index1 == index2){
+                        printf("ERROR: invalid string ; at line: %d\n",lineCounter);
+                        errorFlag = TRUE;
+                        continue;
+                    }
+                    if(labelFlag)
+                        addLabel(labelTemp, TRUE, FALSE, dataCounter);
+                    dataCounter += index1+index2-1;
                     break;
                 case ENTRY:/*Ignore, only on second pass*/ /*need to validate rest of line? https://opal.openu.ac.il/mod/ouilforum/discuss.php?d=2858172&p=6847092#p6847092*/ 
+                    if(labelFlag)
+                        labelFlag = FALSE;
                     break;
                 case EXTERN:/*isValidlabel and insert into table if not.*/
-                    /*exist and extern*/
+                    if(labelFlag)
+                        labelFlag = FALSE;
+                    getWord(line, &i, &index1, &index2);
+                    storeWord(&word, line+index1, index2-index1+1);
+
+
                     break;
                 default:
                     break;
@@ -115,7 +128,7 @@ void getWord(char* line, int* i, int* index1, int* index2)
     *index1 = *i;
     while(!isspace(line[*i]) && line[*i] != '\0') 
         ++*i;
-    *index2 = *i-1;
+    *index2 = (line[*i] == '\0')? *i :*i-1; /*when no word have been found*/
 }
 void storeWord(Token* t, char* line, int len)
 {
