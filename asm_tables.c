@@ -15,9 +15,6 @@ const COMMANDS CMD[] = {
     {"bne", 9, 2, 1,   OP1_LABEL|OP1_RELATIVE},
     {"jsr", 9, 3, 1,   OP1_LABEL|OP1_RELATIVE},
     {"red", 12, 0, 1,  OP1_LABEL|OP1_REG},
-    /*TODO: currently failing when prn is given a number.
-     *might just be tired but shouldn't the single operand
-     *get OP1 instead of OP2?*/
     {"prn", 13, 0, 1,  OP1_IMMEDIATE|OP1_LABEL|OP1_REG},
     {"rts", 14, 0, 0,  NO_OP},
     {"stop", 15, 0, 0, NO_OP},
