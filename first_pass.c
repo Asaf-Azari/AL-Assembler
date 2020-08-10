@@ -118,7 +118,7 @@ int firstPass(FILE* fp)
              *maybe we should just switch to if else if statements?*/
             while(params && !lineError){
 
-                wordIdx = (params == 2) ? commaIndex+1 : start;/*According to number of params, let index point to word*/
+                wordIdx = (params == 2/*TODO: change to MAXPARAM?*/) ? commaIndex+1 : start;/*According to number of params, let index point to word*/
                 while(isspace(line[wordIdx]))
                     ++wordIdx;
                 if(!singleToken(line+wordIdx)){/*If there's more than one token/no token*/
@@ -179,7 +179,7 @@ int singleToken(const char* line)
     int i = 0;
     /*TODO: currently it checks for both two words not seperated
      *by a comma AND if we're missing an operand.
-     *do we want this sort of behaviour? tsk tsk.🤔*/
+     *do we want this sort of behaviour? tsk tsk.🤔*//*what the shit is that*/
     while(line[i] && line[i] != ','){
         if(!isspace(line[i])){
             if(tokenFlag)
