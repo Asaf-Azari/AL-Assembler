@@ -9,7 +9,9 @@
 #define MAXADDRESS 2097151
 #include <string.h>
 #include <stdlib.h>
+#include "asm_tables.h"
 #include "symbol_table.h"
+
 
 static list l;
 /*TODO: Generally test functions.*/

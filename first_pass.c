@@ -3,28 +3,30 @@
 #include <string.h>
 #include <stdlib.h>
 #include "symbol_table.h"
-#include "first_pass.h"
 #include "asm_tables.h"
+#include "first_pass.h"
 
 
 #define TRUE 1
 #define FALSE 0
+/*TODO: move to some constants header*/
+#define ASM_MIN_INT -1048576
+#define ASM_MAX_INT  1048575
 int firstPass(FILE* fp)
 {
     char line[MAX_LINE_LENGTH + 2];
-    Token word;
+    Token word;/*Struct holding current word and its' length*/
     int lineCounter = 0, dataCounter = 0, instCounter = 0;
-    int i = 0, lineLen;
+    int i = 0;
     int index1, index2;
     char errorFlag = FALSE;
     char labelFlag;
     char labelTemp[MAXLABELSIZE+1]; /*for adding the label to the symbol table later TODO: maybe use a token?*/
 
-    while(fgets(line, MAX_LINE_LENGTH + 2, fp)){
-        int cmdIndex;
-        i = 0;
+    while(fgets(line, MAX_LINE_LENGTH + 2, fp)){/*Parsing lines*/
+        int cmdIndex;/*Index holding place inside CMD array*/
+        i = 0; 
         labelFlag = FALSE;
-        lineLen = strlen(line);
         ++lineCounter;
 
         while(isspace(line[i])) ++i; /*skipping leading whitespaces*/
@@ -100,14 +102,203 @@ int firstPass(FILE* fp)
                     break;
             }
         }
-        else
-            if((cmdIndex = isOp(word.currentWord)) != -1){
-
+        else if((cmdIndex = isOp(word.currentWord)) != -1){
+            int lineError = FALSE;
+            int start = i;/*index pointing to first operand*/
+            int wordIdx;
+            int commas = 0;/*Counting commas*/
+            int commaIndex = -1;/*index pointing to comma*/
+            int params = CMD[cmdIndex].numParams;/*number of operands for the command*/
+            int addInst = 0;/*TODO: need to check for additional memory words to be added due to labels being used as operands*/
+            while(isspace(line[i]))
+                    ++i;
+            if(params == 0 && line[i] != '\0'){/*operands given to 0 operand command*/
+                    printf("ERROR: command \"%s\" does not take operands ; at line: %d\n", CMD[cmdIndex].cmdName, lineCounter);
+                    errorFlag = TRUE;
+                    continue;
             }
-    }
+            else if(params != 0 && line[i] == '\0'){/*No operands given*/
+                    printf("ERROR: command \"%s\" takes %d operands ; at line: %d\n", 
+                            CMD[cmdIndex].cmdName,
+                            params,
+                            lineCounter);
+                    errorFlag = TRUE;
+                    
+                    continue;
+            }
+            while(line[i]){
+                if(line[i] == ','){/*Counting commas in line*/
+                    ++commas;
+                    commaIndex = i;
+                }
+                i++;
+            }
+            if(params == 1 && commas > 0){
+                errorFlag = lineError = TRUE;
+                printf("ERROR: command \"%s\" accepts 1 operand, extranous comma ; at line: %d\n",
+                CMD[cmdIndex].cmdName,
+                lineCounter);
+
+                continue;
+            }
+            else if(params == 2 && commas != 1){
+                errorFlag = lineError = TRUE;
+                printf("ERROR: command \"%s\" accepts 2 operands, %s ; at line: %d\n",
+                CMD[cmdIndex].cmdName,
+                (commas > 1) ? "extranous comma" : "missing comma",
+                lineCounter);
+
+                continue;
+            }
+            /*TODO: lineError is currently use to break out of the loop
+             *since break within the switch case isn't breaking the loop.
+             *maybe we should just switch to if else if statements?*/
+            while(params && !lineError){
+
+                wordIdx = (params == 2/*TODO: change to MAXPARAM?*/) ? commaIndex+1 : start;/*According to number of params, let index point to word*/
+                while(isspace(line[wordIdx]))
+                    ++wordIdx;
+                if(!singleToken(line+wordIdx)){/*If there's more than one token/no token*/
+                    printf("ERROR: invalid operand ; at line: %d\n", lineCounter);
+                    errorFlag = lineError = TRUE;
+                    break;
+                }
+
+                switch(line[wordIdx]){
+                    case '#':/*Immediate number*/
+                        /*If our command does not take a number as it's 1st/2nd operand*/
+                        if(!(CMD[cmdIndex].viableOperands & (params == 1 ? OP1_IMMEDIATE : OP2_IMMEDIATE) )){
+                            printf("ERROR: command \"%s\" does not accept number as %s operand ; at line: %d\n", 
+                                    CMD[cmdIndex].cmdName,
+                                    (params == 1) ? "1st" : "2nd",
+                                    lineCounter);
+                            errorFlag = lineError = TRUE;
+                            break;
+                        }
+
+                        ++wordIdx;/*Increment to start of number*/
+                        if(!isNum(line+wordIdx)){
+                            /*TODO:error solution suggestions?*/
+                            printf("ERROR: invalid number ; at line: %d\n", lineCounter);
+                            errorFlag = lineError = TRUE;
+                            break;
+                        }
+                        break;
+                    case 'r':/*Register*/
+                        ++wordIdx;/*Increment to register number*/
+                        /*If our command doesn't take a register as it's 1st/2nd operand*/
+                        if(isReg(line+wordIdx) && (CMD[cmdIndex].viableOperands & (params == 1 ? OP1_REG : OP2_REG))){
+                            printf("ERROR: command \"%s\" does not accept register as %s operand ; at line: %d\n",
+                                    CMD[cmdIndex].cmdName,
+                                    (params == 1) ? "1st" : "2nd",
+                                    lineCounter);
+                            errorFlag = lineError = TRUE;
+                        }
+                        break;
+                    case '&':
+                        if(!(CMD[cmdIndex].viableOperands & OP1_RELATIVE)){
+                            pritnf("ERROR: command \"%s\" does not support relative addressing ; at line: %d\n",
+                            CMD[cmdIndex].cmdName,
+                            lineCounter);
+                            errorFlag = lineError = TRUE;
+                        }
+                        break;
+                    case '\0':/*Missing operand/s*/
+                        printf("ERROR: command \"%s\" is missing operand\\s ; at line: %d\n",
+                                    CMD[cmdIndex].cmdName,
+                                    lineCounter);
+                        errorFlag = lineError = TRUE;
+                        break;
+                    default:
+                        break;
+                }
+
+                --params;/*Decrement params to get to previous operand*/
+            }/*While end*/
+        }/*else if Op*/
+    }/*While fgets*/
 }
-/*checks if a given word is a saved keyword used by the assembly language.
- *uses length of the word to avoid unnecessary strcmp.*/
+int singleToken(const char* line)
+{
+    char tokenFlag = FALSE;
+    int i = 0;
+    /*TODO: currently it checks for both two words not seperated
+     *by a comma AND if we're missing an operand.
+     *do we want this sort of behaviour? tsk tsk.🤔*//*what the shit is that*/
+    while(line[i] && line[i] != ','){
+        if(!isspace(line[i])){
+            if(tokenFlag)
+                return FALSE;
+            else{
+                tokenFlag = TRUE;
+                while(line[i] && !isspace(line[i]) && line[i] != ',')
+                    ++i;
+                continue;
+            }
+        }
+        ++i;
+    }
+    return tokenFlag;
+}
+/*Checks if a given bounded word is a number*/
+/*TODO: do we need to give a specific error for out of range numbers?*/
+int isNum(const char* line)
+{
+    char** numSuffix;
+    long int num = strtol(line, numSuffix, 10);
+    /*strtol manpage: "If there were no digits at all, strtol() stores the 
+     *original value of nptr in *endptr (and returns 0)."*/
+    if(line == *numSuffix){
+        return FALSE;
+    }
+    if(num < ASM_MIN_INT || num > ASM_MAX_INT){
+        return FALSE;
+    }
+    while(**numSuffix != '\0'){
+        if(!isspace(**numSuffix)){
+            if(**numSuffix == ',')
+                return TRUE;
+            else
+                return FALSE;
+        }
+        ++*numSuffix;
+    }
+    return TRUE;
+}
+/*Checks if a given bounded word is a register*/
+int isReg(const char* line)
+{
+    return ((*line - '0') < 8) && (isspace(*line+1) || (*line+1 == ','));
+}
+/*Consumes and returns number of commas between two words.
+ *increments line index.*/
+int consumeComma(const char* line, int* i)
+{
+    int commas = 0;
+    int j;
+    for(j = 0; j < 2; ++j){
+        while(isspace(line[*i]))
+            ++*i;
+        if(line[*i] == ','){
+            ++commas;
+            ++*i;
+        }
+    }
+    return commas;
+}
+/*bounds operand in line.
+ *returns beginning position and increments line index*/
+int boundOp(const char* line, int* i)
+{
+    int startPos;
+    while(isspace(*(line+*i)))
+        ++*i;
+    startPos = *i;
+    while(*(line+*i) != '\0' && !isspace(*(line+*i)) && *(line+*i) != ',')
+        ++*i;
+    return startPos;
+}
+/*checks if a given word is a saved keyword used by the assembly language.*/
 int isKeyword(char* word)
 {
     char* keywords[] = {"mov","cmp","add","sub","lea","clr","not","inc",
@@ -121,7 +312,7 @@ int isKeyword(char* word)
     return FALSE;
 }
 /*adjusts indicies to bound a word*/
-void getWord(char* line, int* i, int* index1, int* index2)
+void getWord(char* line, int* i, int* index1, int* index2)/*TODO: add a flag variable so we can bound a word by space or by comma?*/
 {
     while(isspace(line[*i])) 
             ++*i;
@@ -179,10 +370,6 @@ int isValidLabel(char* word, int wordLen, int lineCounter)
         printf("ERROR: label cannot be a saved keyword ; at line: %d\n",lineCounter);
         return 0;
     }
-   /* if(exists(word)){
-        printf("ERROR: Duplicate label definition ; at line: %d\n",lineCounter);
-        return 0;
-    }*/
     return 1; /*Valid label*/
 }
 int isOp(char* op)
