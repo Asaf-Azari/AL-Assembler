@@ -129,19 +129,20 @@ int firstPass(FILE* fp)
 
                 switch(line[wordIdx]){
                     case '#':/*Immediate number*/
-                        ++wordIdx;/*Increment to start of number*/
-                        if(!isNum(line+wordIdx)){
-                            /*TODO:error solution suggestions?*/
-                            printf("ERROR: invalid number ; at line: %d\n", lineCounter);
-                            errorFlag = lineError = TRUE;
-                            break;
-                        }
                         /*If our command does not take a number as it's 1st/2nd operand*/
                         if(!(CMD[cmdIndex].viableOperands & (params == 1 ? OP1_IMMEDIATE : OP2_IMMEDIATE) )){
                             printf("ERROR: command \"%s\" does not accept number as %s operand ; at line: %d\n", 
                                     CMD[cmdIndex].cmdName,
                                     (params == 1) ? "1st" : "2nd",
                                     lineCounter);
+                            errorFlag = lineError = TRUE;
+                            break;
+                        }
+
+                        ++wordIdx;/*Increment to start of number*/
+                        if(!isNum(line+wordIdx)){
+                            /*TODO:error solution suggestions?*/
+                            printf("ERROR: invalid number ; at line: %d\n", lineCounter);
                             errorFlag = lineError = TRUE;
                             break;
                         }
@@ -157,13 +158,20 @@ int firstPass(FILE* fp)
                             errorFlag = lineError = TRUE;
                         }
                         break;
+                    case '&':
+                        if(!(CMD[cmdIndex].viableOperands & OP1_RELATIVE)){
+                            pritnf("ERROR: command \"%s\" does not support relative addressing ; at line: %d\n",
+                            CMD[cmdIndex].cmdName,
+                            lineCounter);
+                            errorFlag = lineError = TRUE;
+                        }
+                        break;
                     case '\0':/*Missing operand/s*/
                         printf("ERROR: command \"%s\" is missing operand\\s ; at line: %d\n",
                                     CMD[cmdIndex].cmdName,
                                     lineCounter);
                         errorFlag = lineError = TRUE;
                         break;
-                    /*TODO: add & case and validate label?*/
                     default:
                         break;
                 }
