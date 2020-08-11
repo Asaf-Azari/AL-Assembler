@@ -40,6 +40,8 @@ int firstPass(FILE* fp)
         storeWord(&word, line+index1, index2-index1+1);
 
         if(line[index2] == ':'){
+            word.len -= 1;/*excluding ':'*/
+            word.currentWord[word.len] = '\0';
             if (isValidLabel(word.currentWord, word.len, lineCounter)){
                 labelFlag = TRUE;
                 strncpy(labelTemp , word.currentWord,word.len);
@@ -55,21 +57,49 @@ int firstPass(FILE* fp)
         }
         if(line[index1] == '.'){
             switch(isValidAsmOpt(word.currentWord, lineCounter)){
-                int dataArgs = 0;
+                int dataArgs = 0, commaCount = 0;
+                char* numSuffix;
+                
                 case ERROR:
                     errorFlag = TRUE;
                     continue;
                     break;
                 case DATA:/*validate and if labelFlag, add to table*/
-                    index1 = index2;
-                    while(line[index2]!= '\0'){
-                        if(line[index2]==',')
-                            ++dataArgs;
-                        index2++;
+                    while(line[i]!='\0'){
+                        if(isspace(line[i])){
+                            i++;
+                            continue;
+                        }
+                        if(isNumPoint(&line[i], &numSuffix)){
+                            i = numSuffix - line[0]; /*TODO: Does this converts the memory address of the pointer to an array index?🤔🤔🤔*/
+                            dataArgs++;
+                            if(line[i] == ','){
+                                i++;
+                                commaCount++;
+                            }                  
+                        }
+                        else{
+                            printf("ERROR: Invalid number; at line: %d\n", lineCounter);
+                            errorFlag = TRUE;
+                            break;
+                        }
                     }
-                    ++dataArgs; /* number of colons is one less than arguments*/
-                    if(labelFlag)
-                        addLabel(labelTemp, TRUE, FALSE, dataCounter);
+                    if (line[i] != '\0') /* if loop exited early, erros found*/
+                        continue;
+                    if (dataArgs != commaCount+1){ /*sanity check that args are 1 more than commas*/
+                        printf("ERROR: missing number; at line: %d\n", lineCounter);
+                        errorFlag = TRUE;
+                        continue;
+                    }
+                    if(labelFlag){
+                        if(!exists(labelTemp))
+                            addLabel(labelTemp, TRUE, FALSE, dataCounter);
+                        else{
+                            printf("ERROR: Duplicate label; at line: %d\n" ,lineCounter);
+                            errorFlag = TRUE;
+                            continue; 
+                        }
+                    }
                     dataCounter += dataArgs;
                     break;
                 case STRING:/*validate and if labelFlag, add to table*/
@@ -79,26 +109,44 @@ int firstPass(FILE* fp)
                         index1++;
                     while(isspace(line[index2]))
                         index2--;
-                    if(!line[index1]!='"'||line[index2]!='"' || index1 == index2){
+                    if(line[index1]!='"'||line[index2]!='"' || index1 == index2){
                         printf("ERROR: invalid string ; at line: %d\n",lineCounter);
                         errorFlag = TRUE;
                         continue;
                     }
-                    if(labelFlag)
-                        addLabel(labelTemp, TRUE, FALSE, dataCounter);
-                    dataCounter += index1+index2-1;
+                    if(labelFlag){
+                        if(!exists(labelTemp))
+                            addLabel(labelTemp, TRUE, FALSE, dataCounter);
+                        else{
+                            printf("ERROR: Duplicate label; at line: %d\n" ,lineCounter);
+                            errorFlag = TRUE;
+                            continue; 
+                        }
+                    }
+                    dataCounter += index1+index2;/*with terminatil null character*/
                     break;
                 case ENTRY:/*Ignore, only on second pass*/ /*need to validate rest of line? https://opal.openu.ac.il/mod/ouilforum/discuss.php?d=2858172&p=6847092#p6847092*/ 
-                    if(labelFlag)
-                        labelFlag = FALSE;
                     break;
                 case EXTERN:/*isValidlabel and insert into table if not.*/
-                    if(labelFlag)
-                        labelFlag = FALSE;
                     getWord(line, &i, &index1, &index2);
                     storeWord(&word, line+index1, index2-index1+1);
-
-
+                    if (isValidLabel(word.currentWord, word.len, lineCounter)){
+                        getWord(line, &i, &index1, &index2);
+                        if(line[index1]=='\0'){/*No text after label*/
+                            if(!exists(word.currentWord))
+                                addLabel(word.currentWord, FALSE, TRUE, 0);
+                        }
+                        else
+                        {
+                            printf("ERROR: extranous text after label; at line: %d\n" ,lineCounter);
+                            errorFlag = TRUE;
+                            continue;
+                        }
+                    }
+                    else{
+                        errorFlag = TRUE;
+                        continue;
+                    }
                     break;
                 default:
                     break;
@@ -347,13 +395,9 @@ int isValidAsmOpt(char* asmOpt, int lineCounter)
 /*asserts that a given label is a valid label.
  *a label can have up to 31 characters, begin with a letter 
  *from the range <a-z>/<A-Z> and must be fully alphanumeric*/
-/*TODO: need to check if existing label declared as external was previously
- *declared as external*/
 int isValidLabel(char* word, int wordLen, int lineCounter)
 {
     int i;
-    wordLen -= 1;/*excluding ':'*/
-    word[wordLen] = '\0';
     if(wordLen > MAXLABELSIZE){
         printf("ERROR: label exceeds maximum length of %d ; at line: %d\n",MAXLABELSIZE, lineCounter);
         return 0;
@@ -382,4 +426,28 @@ int isOp(char* op)
             return i;  
     }
     return -1;
+}
+
+/*is num but recieves the suffix pointer*/
+int isNumPoint(const char* line,char** numSuffix)
+{
+    long int num = strtol(line, numSuffix, 10);
+    /*strtol manpage: "If there were no digits at all, strtol() stores the 
+     *original value of nptr in *endptr (and returns 0)."*/
+    if(line == *numSuffix){
+        return FALSE;
+    }
+    if(num < ASM_MIN_INT || num > ASM_MAX_INT){
+        return FALSE;
+    }
+    while(**numSuffix != '\0'){
+        if(!isspace(**numSuffix)){
+            if(**numSuffix == ',')
+                return TRUE;
+            else
+                return FALSE;
+        }
+        ++*numSuffix;
+    }
+    return TRUE;
 }
