@@ -158,7 +158,18 @@ int firstPass(FILE* fp)
             int commas = 0;/*Counting commas*/
             int commaIndex = -1;/*index pointing to comma*/
             int params = CMD[cmdIndex].numParams;/*number of operands for the command*/
-            int addInst = 0;/*TODO: need to check for additional memory words to be added due to labels being used as operands*/
+            if(labelFlag){
+                if(exists(labelTemp)){
+                    printf("ERROR: label \"%s\" already declared in file ; at line: %d\n",
+                            labelTemp,
+                            lineCounter);
+                    errorFlag = TRUE;
+                    continue;
+                }
+                addLabel(labelTemp, FALSE, FALSE, instCounter);
+            }
+            ++instCounter;/*Count operand*/
+
             while(isspace(line[i]))
                     ++i;
             if(params == 0 && line[i] != '\0'){/*operands given to 0 operand command*/
@@ -204,7 +215,7 @@ int firstPass(FILE* fp)
              *maybe we should just switch to if else if statements?*/
             while(params && !lineError){
 
-                wordIdx = (params == 2/*TODO: change to MAXPARAM?*/) ? commaIndex+1 : start;/*According to number of params, let index point to word*/
+                wordIdx = (params == MAXPARAM) ? commaIndex+1 : start;/*According to number of params, let index point to word*/
                 while(isspace(line[wordIdx]))
                     ++wordIdx;
                 if(!singleToken(line+wordIdx)){/*If there's more than one token/no token*/
@@ -232,6 +243,7 @@ int firstPass(FILE* fp)
                             errorFlag = lineError = TRUE;
                             break;
                         }
+                        ++instCounter;/*Count number*/
                         break;
                     case 'r':/*Register*/
                         ++wordIdx;/*Increment to register number*/
@@ -246,11 +258,12 @@ int firstPass(FILE* fp)
                         break;
                     case '&':
                         if(!(CMD[cmdIndex].viableOperands & OP1_RELATIVE)){
-                            pritnf("ERROR: command \"%s\" does not support relative addressing ; at line: %d\n",
+                            printf("ERROR: command \"%s\" does not support relative addressing ; at line: %d\n",
                             CMD[cmdIndex].cmdName,
                             lineCounter);
                             errorFlag = lineError = TRUE;
                         }
+                        ++instCounter;/*Count label*/
                         break;
                     case '\0':/*Missing operand/s*/
                         printf("ERROR: command \"%s\" is missing operand\\s ; at line: %d\n",
@@ -259,6 +272,7 @@ int firstPass(FILE* fp)
                         errorFlag = lineError = TRUE;
                         break;
                     default:
+                        ++instCounter;/*Count label*/
                         break;
                 }
 

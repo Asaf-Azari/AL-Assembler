@@ -21,7 +21,7 @@ FILE* getFile(char* fileName, FILETYPE type)
     FILE* filePtr;
 
 
-    strcpy(namePtr, fileName);
+    /*strcpy(namePtr, fileName);*/
     switch(type)
     {
         case OB:
@@ -37,7 +37,9 @@ FILE* getFile(char* fileName, FILETYPE type)
             append = ENT_TYPE;
             break;
     }
-    strcat(namePtr+nameLen, append);
+    /*strcat(namePtr+nameLen, append);*/
+    /*TODO: use sprintf instead?*/
+    sprintf(namePtr, "%s%s", fileName, append);
     filePtr = fopen(namePtr, type == AS ? "r" : "w");
     free(namePtr);
     return filePtr;
