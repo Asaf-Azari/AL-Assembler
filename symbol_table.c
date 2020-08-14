@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include "asm_tables.h"
 #include "symbol_table.h"
+#define TRUE 1
+#define FALSE 0
 
 
 static list l;

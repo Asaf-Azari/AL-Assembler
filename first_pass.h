@@ -24,7 +24,7 @@ void storeWord(Token* t, char* line, int len);
 int isValidLabel(char* word, int wordLen, int lineCounter);
 int isValidAsmOpt(char* asmOpt, int lineCounter);
 int isOp(char* op);
-int isNum(const char* line);
+int isNum(const char* line, char** numSuffix);
 int isReg(const char* line);
 int consumeComma(const char* line, int* i);
 int boundOp(const char* line, int* i);

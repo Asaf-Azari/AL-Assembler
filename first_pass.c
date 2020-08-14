@@ -70,7 +70,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                             i++;
                             continue;
                         }
-                        if(isNumPoint(&line[i], &numSuffix)){
+                        if(isNum(&line[i], &numSuffix)){
                             i = numSuffix - &line[0]; /*TODO: Does this converts the memory address of the pointer to an array index?🤔🤔🤔*/
                             dataArgs++;
                             if(line[i] == ','){
@@ -219,7 +219,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                 wordIdx = (params == MAXPARAM) ? commaIndex+1 : start;/*According to number of params, let index point to word*/
                 while(isspace(line[wordIdx]))
                     ++wordIdx;
-                if(!singleToken(line+wordIdx)){/*If there's more than one token/no token*/
+                if(!singleToken(&line[wordIdx])){/*If there's more than one token/no token*/
                     printf("ERROR: invalid operand ; at line: %d\n", lineCounter);
                     errorFlag = lineError = TRUE;
                     break;
@@ -238,7 +238,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                         }
 
                         ++wordIdx;/*Increment to start of number*/
-                        if(!isNum(line+wordIdx)){
+                        if(!isNum(&line[wordIdx], NULL)){
                             /*TODO:error solution suggestions?*/
                             printf("ERROR: invalid number ; at line: %d\n", lineCounter);
                             errorFlag = lineError = TRUE;
@@ -249,7 +249,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                     case 'r':/*Register*/
                         ++wordIdx;/*Increment to register number*/
                         /*If our command doesn't take a register as it's 1st/2nd operand*/
-                        if(isReg(line+wordIdx) && (CMD[cmdIndex].viableOperands & (params == 1 ? OP1_REG : OP2_REG))){
+                        if(isReg(&line[wordIdx]) && (CMD[cmdIndex].viableOperands & (params == 1 ? OP1_REG : OP2_REG))){
                             printf("ERROR: command \"%s\" does not accept register as %s operand ; at line: %d\n",
                                     CMD[cmdIndex].cmdName,
                                     (params == 1) ? "1st" : "2nd",
@@ -304,14 +304,10 @@ int singleToken(const char* line)
     }
     return tokenFlag;
 }
-/*Checks if a given bounded word is a number*/
-/*TODO: do we need to give a specific error for out of range numbers?*/
-int isNum(const char* line)
+/*int isNum(const char* line)
 {
     char** numSuffix;
     long int num = strtol(line, numSuffix, 10);
-    /*strtol manpage: "If there were no digits at all, strtol() stores the 
-     *original value of nptr in *endptr (and returns 0)."*/
     if(line == *numSuffix){
         return FALSE;
     }
@@ -328,7 +324,7 @@ int isNum(const char* line)
         ++*numSuffix;
     }
     return TRUE;
-}
+}*/
 /*Checks if a given bounded word is a register*/
 int isReg(const char* line)
 {
@@ -443,9 +439,16 @@ int isOp(char* op)
 }
 
 /*is num but recieves the suffix pointer*/
-int isNumPoint(const char* line,char** numSuffix)
+int isNum(const char* line, char** numSuffix)
 {
-    long int num = strtol(line, numSuffix, 10);
+    char** localSuffix;
+    long int num = strtol(line, localSuffix, 10);
+    if(numSuffix == NULL){
+        numSuffix = localSuffix;
+    }
+    else{
+        *numSuffix = *localSuffix;
+    }
     /*strtol manpage: "If there were no digits at all, strtol() stores the 
      *original value of nptr in *endptr (and returns 0)."*/
     if(line == *numSuffix){
