@@ -18,7 +18,7 @@ enum{
 } asmInst;
 
 int isKeyword(char* word);
-int firstPass(FILE* fp);
+int firstPass(FILE* fp, int* dataCounter, int* instCounter);
 void getWord(char* line, int* i, int* index1, int* index2);
 void storeWord(Token* t, char* line, int len);
 int isValidLabel(char* word, int wordLen, int lineCounter);

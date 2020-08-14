@@ -12,18 +12,19 @@
 /*TODO: move to some constants header*/
 #define ASM_MIN_INT -1048576
 #define ASM_MAX_INT  1048575
-int firstPass(FILE* fp)
+int firstPass(FILE* fp, int* dataCounter, int* instCounter)
 {
     char line[MAX_LINE_LENGTH + 2];
     Token word;/*Struct holding current word and its' length*/
-    int lineCounter = 0, dataCounter = 0, instCounter = 0;
+    int lineCounter = 0;
     int i = 0, lineLen;
     int index1, index2;
     char errorFlag = FALSE;
     char labelFlag;
     char labelTemp[MAXLABELSIZE+1]; /*for adding the label to the symbol table later TODO: maybe use a token?*/
     
-
+    *dataCounter = 0;
+    *instCounter = 0;
     while(fgets(line, MAX_LINE_LENGTH + 2, fp)){/*Parsing lines*/
         int cmdIndex;/*Index holding place inside CMD array*/
         i = 0; 
@@ -92,14 +93,14 @@ int firstPass(FILE* fp)
                     }
                     if(labelFlag){
                         if(!exists(labelTemp))
-                            addLabel(labelTemp, TRUE, FALSE, dataCounter);
+                            addLabel(labelTemp, TRUE, FALSE, *dataCounter);
                         else{
                             printf("ERROR: Duplicate label; at line: %d\n" ,lineCounter);
                             errorFlag = TRUE;
                             continue; 
                         }
                     }
-                    dataCounter += dataArgs;
+                    *dataCounter += dataArgs;
                     break;
                 case STRING:/*validate and if labelFlag, add to table*/
                     index1 = index2;
@@ -115,14 +116,14 @@ int firstPass(FILE* fp)
                     }
                     if(labelFlag){
                         if(!exists(labelTemp))
-                            addLabel(labelTemp, TRUE, FALSE, dataCounter);
+                            addLabel(labelTemp, TRUE, FALSE, *dataCounter);
                         else{
                             printf("ERROR: Duplicate label; at line: %d\n" ,lineCounter);
                             errorFlag = TRUE;
                             continue; 
                         }
                     }
-                    dataCounter += index1+index2;/*with terminatil null character*/
+                    *dataCounter += index1+index2;/*with terminatil null character*/
                     break;
                 case ENTRY:/*Ignore, only on second pass*/ /*need to validate rest of line? https://opal.openu.ac.il/mod/ouilforum/discuss.php?d=2858172&p=6847092#p6847092*/ 
                     break;
@@ -166,9 +167,9 @@ int firstPass(FILE* fp)
                     errorFlag = TRUE;
                     continue;
                 }
-                addLabel(labelTemp, FALSE, FALSE, instCounter);
+                addLabel(labelTemp, FALSE, FALSE, *instCounter);
             }
-            ++instCounter;/*Count operand*/
+            ++*instCounter;/*Count operand*/
 
             while(isspace(line[i]))
                     ++i;
@@ -243,7 +244,7 @@ int firstPass(FILE* fp)
                             errorFlag = lineError = TRUE;
                             break;
                         }
-                        ++instCounter;/*Count number*/
+                        ++*instCounter;/*Count number*/
                         break;
                     case 'r':/*Register*/
                         ++wordIdx;/*Increment to register number*/
@@ -263,7 +264,7 @@ int firstPass(FILE* fp)
                             lineCounter);
                             errorFlag = lineError = TRUE;
                         }
-                        ++instCounter;/*Count label*/
+                        ++*instCounter;/*Count label*/
                         break;
                     case '\0':/*Missing operand/s*/
                         printf("ERROR: command \"%s\" is missing operand\\s ; at line: %d\n",
@@ -272,7 +273,7 @@ int firstPass(FILE* fp)
                         errorFlag = lineError = TRUE;
                         break;
                     default:
-                        ++instCounter;/*Count label*/
+                        ++*instCounter;/*Count label*/
                         break;
                 }
 

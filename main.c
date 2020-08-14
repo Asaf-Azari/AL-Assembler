@@ -47,6 +47,7 @@ FILE* getFile(char* fileName, FILETYPE type)
 int main(int argc, char** argv)
 {
     int i;
+    int dataCounter, instCounter;
     FILE* fp = NULL;
     if(argc == 1){/*no arguments*/
         printf("ERROR: No arguments supplied\n");
@@ -59,7 +60,7 @@ int main(int argc, char** argv)
         }
         
         /*printf("%s\n", CMD[0].cmdName); testing CMD inclusion*/
-        if(firstPass(fp)){
+        if(firstPass(fp,&dataCounter, &instCounter)){
         }
         /*if(!parse2(fp)){
         
