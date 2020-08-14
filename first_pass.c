@@ -45,7 +45,6 @@ int firstPass(FILE* fp)
             if (isValidLabel(word.currentWord, word.len, lineCounter)){
                 labelFlag = TRUE;
                 strncpy(labelTemp , word.currentWord,word.len);
-                labelTemp[word.len-1] = '\0';
 
                 getWord(line, &i, &index1, &index2);
                 storeWord(&word, line+index1, index2-index1+1);
@@ -71,7 +70,7 @@ int firstPass(FILE* fp)
                             continue;
                         }
                         if(isNumPoint(&line[i], &numSuffix)){
-                            i = numSuffix - line[0]; /*TODO: Does this converts the memory address of the pointer to an array index?🤔🤔🤔*/
+                            i = numSuffix - &line[0]; /*TODO: Does this converts the memory address of the pointer to an array index?🤔🤔🤔*/
                             dataArgs++;
                             if(line[i] == ','){
                                 i++;
