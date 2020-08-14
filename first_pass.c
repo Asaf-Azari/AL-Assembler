@@ -22,6 +22,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
     char errorFlag = FALSE;
     char labelFlag;
     char labelTemp[MAXLABELSIZE+1]; /*for adding the label to the symbol table later TODO: maybe use a token?*/
+    char c;
     
     *dataCounter = 0;
     *instCounter = 0;
@@ -31,6 +32,13 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
         labelFlag = FALSE;
         ++lineCounter;
         lineLen = strlen(line);
+
+        if(line[lineLen-1] != '\n'){/*line longer than 80 characters*/
+            printf("ERROR: Line exceeds maximum length of %d characters; at line: %d\n" ,MAX_LINE_LENGTH,lineCounter);
+            errorFlag = TRUE;
+            while((c = fgetc(fp)) != '\n' && c != EOF);
+            continue;
+        }
 
         while(isspace(line[i])) ++i; /*skipping leading whitespaces*/
         if(line[i] == ';' || line[i] == '\0'){/*skipping line if empty/comment*/
@@ -281,6 +289,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
             }/*While end*/
         }/*else if Op*/
     }/*While fgets*/
+    return !errorFlag;
 }
 int singleToken(const char* line)
 {
