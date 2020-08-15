@@ -283,11 +283,11 @@ int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCo
     /*Relative*/
     else if(line[0] == '&'){
         int i = 0;
-        if(!(cmd->viableOperands & OP1_RELATIVE)){
-            printf("ERROR: command \"%s\" does not support relative addressing ; at line: %d\n",
-                    cmd->cmdName,
-                    lineCounter);
-            return FALSE;
+        if(!(cmd->viableOperands & (params == 1 ? OP1_RELATIVE : OP2_RELATIVE))){
+            printf("ERROR: command \"%s\" does not support relative addressing at %s operand ; at line: %d\n",
+            cmd->cmdName,
+            (params == 1) ? "1st" : "2nd",
+            lineCounter);
         }
         while(!isspace(line[i]))
             ++i;
