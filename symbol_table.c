@@ -5,14 +5,11 @@
  * 4.  extern/not extern
  * 5.  address**/
 
-/*TODO: move MAXADDRESS?*/
-#define MAXADDRESS 2097151
 #include <string.h>
 #include <stdlib.h>
+#include "constants.h"
 #include "asm_tables.h"
 #include "symbol_table.h"
-#define TRUE 1
-#define FALSE 0
 
 
 static list l;

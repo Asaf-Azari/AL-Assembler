@@ -1,9 +1,12 @@
 #ifndef ASM_CONSTANTS
 
+#define ASM_CONSTANTS
+
 #define MAX_LINE_LENGTH 80 
 #define MAXLABELSIZE 31
 #define MAXOPTSIZE 7
 #define MAXPARAM 2
+#define MAXADDRESS 2097151
 
 #define FALSE 0
 #define TRUE 1

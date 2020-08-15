@@ -5,13 +5,8 @@
 #include "symbol_table.h"
 #include "asm_tables.h"
 #include "first_pass.h"
+#include "constants.h"
 
-
-#define TRUE 1
-#define FALSE 0
-/*TODO: move to some constants header*/
-#define ASM_MIN_INT -1048576
-#define ASM_MAX_INT  1048575
 int firstPass(FILE* fp, int* dataCounter, int* instCounter)
 {
     char line[MAX_LINE_LENGTH + 2];

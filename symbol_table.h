@@ -1,4 +1,4 @@
-#define MAXLABELSIZE 31
+#include "constants.h"
 typedef struct node{
     struct node*  nextPtr;
     char          label[MAXLABELSIZE];

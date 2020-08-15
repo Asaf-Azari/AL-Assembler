@@ -13,10 +13,6 @@
 #define OP2_RELATIVE 64
 #define OP2_REG 128
 
-#define MAX_LINE_LENGTH 80 /*TODO: move to another file*/
-#define MAXLABELSIZE 31
-#define MAXOPTSIZE 7
-
 typedef struct COMMANDS{
     char*         cmdName;
     unsigned char opCode;
