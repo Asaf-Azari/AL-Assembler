@@ -57,6 +57,7 @@ int main(int argc, char** argv)
         clearSymbolTable();
         if(!(fp = getFile(argv[i], AS))){/*TODO: fclose after done? */
            printf("ERROR: Cannot open input file: %s.as skipping \n", argv[i]);
+           continue;
         }
         
         /*printf("%s\n", CMD[0].cmdName); testing CMD inclusion*/

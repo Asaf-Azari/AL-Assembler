@@ -38,17 +38,20 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
         }
 
         getWord(line, &i, &index1, &index2);
-        storeWord(&word, line+index1, index2-index1+1);
+        storeWord(&word, &line[index1], index2-index1+1);
 
         if(line[index2] == ':'){
             word.len -= 1;/*excluding ':'*/
             word.currentWord[word.len] = '\0';
+
+            /*TODO: need to decide what to do with .extern+regular decleration*/
             if (isValidLabel(word.currentWord, word.len, lineCounter)){
                 labelFlag = TRUE;
-                strncpy(labelTemp , word.currentWord,word.len);
+                strncpy(labelTemp, word.currentWord, word.len);
+                labelTemp[word.len] = '\0';
 
                 getWord(line, &i, &index1, &index2);
-                storeWord(&word, line+index1, index2-index1+1);
+                storeWord(&word, &line[index1], index2-index1+1);
             }
             else{
                 errorFlag = TRUE;
@@ -56,14 +59,15 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
             }
         }
         if(line[index1] == '.'){
+            int dataArgs = 0, commaCount = 0;
+            char* numSuffix;
             switch(isValidAsmOpt(word.currentWord, lineCounter)){
-                int dataArgs = 0, commaCount = 0;
-                char* numSuffix;
-                
+
                 case ERROR:
                     errorFlag = TRUE;
                     continue;
                     break;
+
                 case DATA:/*validate and if labelFlag, add to table*/
                     while(line[i]!='\0'){
                         if(isspace(line[i])){
@@ -84,9 +88,9 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                             break;
                         }
                     }
-                    if (line[i] != '\0') /* if loop exited early, erros found*/
+                    if(line[i] != '\0') /* if loop exited early, erros found*/
                         continue;
-                    if (dataArgs != commaCount+1){ /*sanity check that args are 1 more than commas*/
+                    if(dataArgs != commaCount+1){ /*sanity check that args are 1 more than commas*/
                         printf("ERROR: missing number; at line: %d\n", lineCounter);
                         errorFlag = TRUE;
                         continue;
@@ -102,8 +106,10 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                     }
                     *dataCounter += dataArgs;
                     break;
+
                 case STRING:/*validate and if labelFlag, add to table*/
-                    index1 = index2;
+                    /*index2 is pointing at 'g' of ".string", index2+1 is the correct one*/
+                    index1 = index2+1;
                     index2 = lineLen-1;
                     while(isspace(line[index1]))
                         index1++;
@@ -129,7 +135,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                     break;
                 case EXTERN:/*isValidlabel and insert into table if not.*/
                     getWord(line, &i, &index1, &index2);
-                    storeWord(&word, line+index1, index2-index1+1);
+                    storeWord(&word, &line[index1], index2-index1+1);
                     if (isValidLabel(word.currentWord, word.len, lineCounter)){
                         getWord(line, &i, &index1, &index2);
                         if(line[index1]=='\0'){/*No text after label*/
@@ -441,13 +447,13 @@ int isOp(char* op)
 /*is num but recieves the suffix pointer*/
 int isNum(const char* line, char** numSuffix)
 {
-    char** localSuffix;
-    long int num = strtol(line, localSuffix, 10);
+    char* localSuffix;
+    long int num = strtol(line, &localSuffix, 10);
     if(numSuffix == NULL){
-        numSuffix = localSuffix;
+        numSuffix = &localSuffix;
     }
     else{
-        *numSuffix = *localSuffix;
+        *numSuffix = localSuffix;
     }
     /*strtol manpage: "If there were no digits at all, strtol() stores the 
      *original value of nptr in *endptr (and returns 0)."*/
