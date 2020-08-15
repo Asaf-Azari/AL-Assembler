@@ -229,8 +229,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                 wordIdx = (params == MAXPARAM) ? commaIndex+1 : start;/*According to number of params, let index point to word*/
                 while(isspace(line[wordIdx]))
                     ++wordIdx;
-                if(!singleToken(&line[wordIdx])){/*If there's more than one token/no token*/
-                    printf("ERROR: missing/extranous operands ; at line: %d\n", lineCounter);
+                if(!singleToken(&line[wordIdx], params, lineCounter)){/*If there's more than one token/no token*/
                     errorFlag = TRUE;
                     break;
                 }
@@ -244,7 +243,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
             }/*While end*/
         }/*else if Op*/
         else{
-            printf("Error: unrecognized instruction \"%s\" ; at line: %d\n", word.currentWord, lineCounter);
+            printf("ERROR: unrecognized instruction \"%s\" ; at line: %d\n", word.currentWord, lineCounter);
             errorFlag = TRUE;
             continue;
         }
@@ -316,7 +315,7 @@ int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCo
 
     return TRUE;
 }
-int singleToken(const char* line)
+int singleToken(const char* line, int params, int lineCounter)
 {
     char tokenFlag = FALSE;
     int i = 0;
@@ -325,8 +324,10 @@ int singleToken(const char* line)
      *do we want this sort of behaviour? tsk tsk.🤔*//*what the shit is that*/
     while(line[i] && line[i] != ','){
         if(!isspace(line[i])){
-            if(tokenFlag)
+            if(tokenFlag){
+                printf("ERROR: extranous operand ; at line: %d\n", lineCounter);
                 return FALSE;
+            }
             else{
                 tokenFlag = TRUE;
                 while(line[i] && !isspace(line[i]) && line[i] != ',')
@@ -335,6 +336,11 @@ int singleToken(const char* line)
             }
         }
         ++i;
+    }
+    if(!tokenFlag){
+        printf("ERROR: missing %s operand ; at line: %d\n", 
+                params == 1 ? "1st" : "2nd",
+                lineCounter);
     }
     return tokenFlag;
 }
