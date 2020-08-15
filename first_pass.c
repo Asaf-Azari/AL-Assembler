@@ -271,30 +271,32 @@ int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCo
     }
 
     /*Register*/
-    else if(line[0] == 'r' && isReg(&line[1]) && (cmd->viableOperands & (params == 1 ? OP1_REG : OP2_REG)) ){
-        printf("ERROR: command \"%s\" does not accept register as %s operand ; at line: %d\n",
-                cmd->cmdName,
-                (params == 1) ? "1st" : "2nd",
-                lineCounter);
-        return FALSE;
+    else if(line[0] == 'r' && isReg(&line[1])){
+        if(!(cmd->viableOperands & (params == 1 ? OP1_REG : OP2_REG))){
+            printf("ERROR: command \"%s\" does not accept register as %s operand ; at line: %d\n",
+                    cmd->cmdName,
+                    (params == 1) ? "1st" : "2nd",
+                    lineCounter);
+            return FALSE;
+        }
     }
 
     /*Relative*/
     else if(line[0] == '&'){
         int i = 0;
-        if(!(cmd->viableOperands & (params == 1 ? OP1_RELATIVE : OP2_RELATIVE))){
+        if(!(cmd->viableOperands & ((params == 1) ? OP1_RELATIVE : OP2_RELATIVE))){
             printf("ERROR: command \"%s\" does not support relative addressing at %s operand ; at line: %d\n",
             cmd->cmdName,
             (params == 1) ? "1st" : "2nd",
             lineCounter);
         }
-        while(!isspace(line[i]))
+        while(!isspace(line[i]) && line[i] != ',')
             ++i;
-        if(line[i] == '\0'){
+        /*if(line[i] == '\0'){
             printf("ERROR: no label after '&' ; at line: %d\n", lineCounter);
             return FALSE;
-        }
-        storeWord(&label, line, i+1);
+        }*/
+        storeWord(&label, line+1, i-1);
         if(!isValidLabel(label.currentWord, label.len, lineCounter)){
             return FALSE;
         }
@@ -304,9 +306,9 @@ int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCo
     /*Label*/
     else{
         int i = 0;
-        while(!isspace(i))
+        while(!isspace(line[i]) && line[i] != ',')
             ++i;
-        storeWord(&label, line, i+1);
+        storeWord(&label, line, i);
         if(!isValidLabel(label.currentWord, label.len, lineCounter)){
             return FALSE;
         }
@@ -347,7 +349,7 @@ int singleToken(const char* line, int params, int lineCounter)
 /*Checks if a given bounded word is a register*/
 int isReg(const char* line)
 {
-    return ((*line - '0') < 8) && (isspace(*line+1) || (*line+1 == ','));
+    return ((*line - '0') < 8) && (isspace(line[1]) || (line[1] == ','));
 }
 /*Consumes and returns number of commas between two words.
  *increments line index.*/
