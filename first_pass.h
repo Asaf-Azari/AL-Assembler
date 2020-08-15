@@ -19,7 +19,7 @@ enum{
 int isKeyword(char* word);
 int firstPass(FILE* fp, int* dataCounter, int* instCounter);
 void getWord(char* line, int* i, int* index1, int* index2);
-void storeWord(Token* t, char* line, int len);
+void storeWord(Token* t, const char* line, int len);
 int isValidLabel(char* word, int wordLen, int lineCounter);
 int isValidAsmOpt(char* asmOpt, int lineCounter);
 int isOp(char* op);
@@ -28,3 +28,4 @@ int isReg(const char* line);
 int consumeComma(const char* line, int* i);
 int boundOp(const char* line, int* i);
 int singleToken(const char* line);
+int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCounter, int lineCounter);

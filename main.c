@@ -62,7 +62,7 @@ int main(int argc, char** argv)
         }
         
         if(!firstPass(fp,&dataCounter, &instCounter)){
-            printf("Erros found in file %s.as, skipping \n", argv[i]);
+            printf("Errors found in file %s.as, skipping \n", argv[i]);
             continue;
         }
         /*TODO:*/

@@ -226,67 +226,18 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
              *since break within the switch case isn't breaking the loop.
              *maybe we should just switch to if else if statements?*/
             while(params && !lineError){
-
                 wordIdx = (params == MAXPARAM) ? commaIndex+1 : start;/*According to number of params, let index point to word*/
                 while(isspace(line[wordIdx]))
                     ++wordIdx;
                 if(!singleToken(&line[wordIdx])){/*If there's more than one token/no token*/
-                    printf("ERROR: invalid operand ; at line: %d\n", lineCounter);
-                    errorFlag = lineError = TRUE;
+                    printf("ERROR: missing/extranous operands ; at line: %d\n", lineCounter);
+                    errorFlag = TRUE;
                     break;
                 }
 
-                switch(line[wordIdx]){
-                    case '#':/*Immediate number*/
-                        /*If our command does not take a number as it's 1st/2nd operand*/
-                        if(!(CMD[cmdIndex].viableOperands & (params == 1 ? OP1_IMMEDIATE : OP2_IMMEDIATE) )){
-                            printf("ERROR: command \"%s\" does not accept number as %s operand ; at line: %d\n", 
-                                    CMD[cmdIndex].cmdName,
-                                    (params == 1) ? "1st" : "2nd",
-                                    lineCounter);
-                            errorFlag = lineError = TRUE;
-                            break;
-                        }
-
-                        ++wordIdx;/*Increment to start of number*/
-                        if(!isNum(&line[wordIdx], NULL)){
-                            /*TODO:error solution suggestions?*/
-                            printf("ERROR: invalid number ; at line: %d\n", lineCounter);
-                            errorFlag = lineError = TRUE;
-                            break;
-                        }
-                        ++*instCounter;/*Count number*/
-                        break;
-                    case 'r':/*Register*/
-                        ++wordIdx;/*Increment to register number*/
-                        /*If our command doesn't take a register as it's 1st/2nd operand*/
-                        if(isReg(&line[wordIdx]) && (CMD[cmdIndex].viableOperands & (params == 1 ? OP1_REG : OP2_REG))){
-                            printf("ERROR: command \"%s\" does not accept register as %s operand ; at line: %d\n",
-                                    CMD[cmdIndex].cmdName,
-                                    (params == 1) ? "1st" : "2nd",
-                                    lineCounter);
-                            errorFlag = lineError = TRUE;
-                        }
-                        break;
-                    case '&':
-                        if(!(CMD[cmdIndex].viableOperands & (params == 1 ? OP1_RELATIVE : OP2_RELATIVE))){
-                            printf("ERROR: command \"%s\" does not support relative addressing at %s operand ; at line: %d\n",
-                            CMD[cmdIndex].cmdName,
-                            (params == 1) ? "1st" : "2nd",
-                            lineCounter);
-                            errorFlag = lineError = TRUE;
-                        }
-                        ++*instCounter;/*Count label*/
-                        break;
-                    case '\0':/*Missing operand/s*/
-                        printf("ERROR: command \"%s\" is missing operand\\s ; at line: %d\n",
-                                    CMD[cmdIndex].cmdName,
-                                    lineCounter);
-                        errorFlag = lineError = TRUE;
-                        break;
-                    default:
-                        ++*instCounter;/*Count label*/
-                        break;
+                if(!verifyOperand(&line[wordIdx], &CMD[cmdIndex], params, instCounter, lineCounter)){
+                    errorFlag = TRUE;
+                    break;
                 }
 
                 --params;/*Decrement params to get to previous operand*/
@@ -299,6 +250,71 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
         }
     }/*While fgets*/
     return !errorFlag;
+}
+int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCounter, int lineCounter)
+{
+    Token label;/*Hold label for validation*/
+
+    /*Immediate number*/
+    if(line[0] == '#'){
+        if(!(cmd->viableOperands & (params == 1 ? OP1_IMMEDIATE : OP2_IMMEDIATE))){
+            printf("ERROR: command \"%s\" does not accept number as %s operand ; at line: %d\n", 
+                    cmd->cmdName,
+                    (params == 1) ? "1st" : "2nd",
+                    lineCounter);
+            return FALSE;
+        }
+        if(!isNum(&line[1], NULL)){
+            printf("ERROR: invalid number ; at line: %d\n", lineCounter);
+            return FALSE;
+        }
+        ++*instCounter;
+    }
+
+    /*Register*/
+    else if(line[0] == 'r' && isReg(&line[1]) && (cmd->viableOperands & (params == 1 ? OP1_REG : OP2_REG)) ){
+        printf("ERROR: command \"%s\" does not accept register as %s operand ; at line: %d\n",
+                cmd->cmdName,
+                (params == 1) ? "1st" : "2nd",
+                lineCounter);
+        return FALSE;
+    }
+
+    /*Relative*/
+    else if(line[0] == '&'){
+        int i = 0;
+        if(!(cmd->viableOperands & OP1_RELATIVE)){
+            printf("ERROR: command \"%s\" does not support relative addressing ; at line: %d\n",
+                    cmd->cmdName,
+                    lineCounter);
+            return FALSE;
+        }
+        while(!isspace(line[i]))
+            ++i;
+        if(line[i] == '\0'){
+            printf("ERROR: no label after '&' ; at line: %d\n", lineCounter);
+            return FALSE;
+        }
+        storeWord(&label, line, i+1);
+        if(!isValidLabel(label.currentWord, label.len, lineCounter)){
+            return FALSE;
+        }
+        ++*instCounter;/*Count label*/
+    }
+
+    /*Label*/
+    else{
+        int i = 0;
+        while(!isspace(i))
+            ++i;
+        storeWord(&label, line, i+1);
+        if(!isValidLabel(label.currentWord, label.len, lineCounter)){
+            return FALSE;
+        }
+        ++*instCounter;/*Count label*/
+    }
+
+    return TRUE;
 }
 int singleToken(const char* line)
 {
@@ -378,7 +394,7 @@ void getWord(char* line, int* i, int* index1, int* index2)/*TODO: add a flag var
         ++*i;
     *index2 = (line[*i] == '\0')? *i :*i-1; /*when no word have been found*/
 }
-void storeWord(Token* t, char* line, int len)
+void storeWord(Token* t, const char* line, int len)
 {
     t->len = len;
     strncpy(t->currentWord, line, len);
