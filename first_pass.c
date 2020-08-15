@@ -28,7 +28,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
         ++lineCounter;
         lineLen = strlen(line);
 
-        if(line[lineLen-1] != '\n'){/*line longer than 80 characters*/
+        if(line[lineLen-1] != '\n' && !feof(fp)){/*line longer than 80 characters*/
             printf("ERROR: Line exceeds maximum length of %d characters; at line: %d\n" ,MAX_LINE_LENGTH,lineCounter);
             errorFlag = TRUE;
             while((c = fgetc(fp)) != '\n' && c != EOF);
@@ -133,7 +133,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                             continue; 
                         }
                     }
-                    *dataCounter += index1+index2;/*with terminatil null character*/
+                    *dataCounter += index2-index1;/*with terminatil null character*/
                     break;
                 case ENTRY:/*Ignore, only on second pass*/ /*need to validate rest of line? https://opal.openu.ac.il/mod/ouilforum/discuss.php?d=2858172&p=6847092#p6847092*/ 
                     break;
@@ -292,7 +292,7 @@ int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCo
         }
         while(!isspace(line[i]) && line[i] != ',')
             ++i;
-        /*if(line[i] == '\0'){
+        /*if(line[i] == '\0'){ TODO: decide if we want to have this
             printf("ERROR: no label after '&' ; at line: %d\n", lineCounter);
             return FALSE;
         }*/
@@ -400,7 +400,7 @@ void getWord(char* line, int* i, int* index1, int* index2)/*TODO: add a flag var
     *index1 = *i;
     while(!isspace(line[*i]) && line[*i] != '\0') 
         ++*i;
-    *index2 = (line[*i] == '\0')? *i :*i-1; /*when no word have been found*/
+    *index2 = (line[*index1] == '\0')? *i :*i-1; /*when no word have been found*/
 }
 void storeWord(Token* t, const char* line, int len)
 {

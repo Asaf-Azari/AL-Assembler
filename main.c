@@ -62,6 +62,7 @@ int main(int argc, char** argv)
             printf("Errors found in file %s.as, skipping \n", argv[i]);
             continue;
         }
+        printf("data:%d inst:%d", dataCounter,instCounter);
         /*TODO:*/
         /*dataTable(dateCounter);*/
         /*instructionTable(instructionCounter);*/
