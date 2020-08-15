@@ -86,7 +86,8 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                             }                  
                         }
                         else{
-                            printf("ERROR: Invalid number; at line: %d\n", lineCounter);
+                            storeWord(&word, &line[i], numSuffix - &line[i]+1);
+                            printf("ERROR: Invalid number, read: \"%s\" ; at line: %d\n", word.currentWord, lineCounter);                  
                             errorFlag = TRUE;
                             break;
                         }
@@ -183,14 +184,15 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
             while(isspace(line[i]))
                     ++i;
             if(params == 0 && line[i] != '\0'){/*operands given to 0 operand command*/
-                    printf("ERROR: command \"%s\" does not take operands ; at line: %d\n", CMD[cmdIndex].cmdName, lineCounter);
+                    printf("ERROR: command \"%s\" does not accepts operands ; at line: %d\n", CMD[cmdIndex].cmdName, lineCounter);
                     errorFlag = TRUE;
                     continue;
             }
             else if(params != 0 && line[i] == '\0'){/*No operands given*/
-                    printf("ERROR: command \"%s\" takes %d operands ; at line: %d\n", 
+                    printf("ERROR: command \"%s\" accepts %d operand%s, none given ; at line: %d\n", 
                             CMD[cmdIndex].cmdName,
                             params,
+                            (params > 1) ? "s" : "",
                             lineCounter);
                     errorFlag = TRUE;
                     
@@ -267,9 +269,10 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                         }
                         break;
                     case '&':
-                        if(!(CMD[cmdIndex].viableOperands & OP1_RELATIVE)){
-                            printf("ERROR: command \"%s\" does not support relative addressing ; at line: %d\n",
+                        if(!(CMD[cmdIndex].viableOperands & (params == 1 ? OP1_RELATIVE : OP2_RELATIVE))){
+                            printf("ERROR: command \"%s\" does not support relative addressing at %s operand ; at line: %d\n",
                             CMD[cmdIndex].cmdName,
+                            (params == 1) ? "1st" : "2nd",
                             lineCounter);
                             errorFlag = lineError = TRUE;
                         }
@@ -289,6 +292,11 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                 --params;/*Decrement params to get to previous operand*/
             }/*While end*/
         }/*else if Op*/
+        else{
+            printf("Error: unrecognized instruction \"%s\" ; at line: %d\n", word.currentWord, lineCounter);
+            errorFlag = TRUE;
+            continue;
+        }
     }/*While fgets*/
     return !errorFlag;
 }

@@ -76,6 +76,7 @@ int main(int argc, char** argv)
 
 
     }
+    return 0;
 }
 /** LINKED LIST 
  * 1.  pointer to next item
