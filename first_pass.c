@@ -293,7 +293,10 @@ int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCo
         }
         while(!isspace(line[i]) && line[i] != ',')
             ++i;
-
+        /*if(line[i] == '\0'){ TODO: decide if we want to have this
+            printf("ERROR: no label after '&' ; at line: %d\n", lineCounter);
+            return FALSE;
+        }*/
         storeWord(&label, line+1, i-1);
         if(!isValidLabel(label.currentWord, label.len, lineCounter)){
             return FALSE;
@@ -420,7 +423,6 @@ int isValidAsmOpt(char* asmOpt, int lineCounter)
 int isValidLabel(char* word, int wordLen, int lineCounter)
 {
     int i;
-    printf("%s\n", word);
     if(wordLen > MAXLABELSIZE){
         printf("ERROR: label exceeds maximum length of %d ; at line: %d\n",MAXLABELSIZE, lineCounter);
         return FALSE;
