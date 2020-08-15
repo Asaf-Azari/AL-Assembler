@@ -28,7 +28,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
         ++lineCounter;
         lineLen = strlen(line);
 
-        if(line[lineLen-1] != '\n'){/*line longer than 80 characters*/
+        if(line[lineLen-1] != '\n' && !feof(fp)){/*line longer than 80 characters*/
             printf("ERROR: Line exceeds maximum length of %d characters; at line: %d\n" ,MAX_LINE_LENGTH,lineCounter);
             errorFlag = TRUE;
             while((c = fgetc(fp)) != '\n' && c != EOF);
@@ -133,7 +133,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                             continue; 
                         }
                     }
-                    *dataCounter += index1+index2;/*with terminatil null character*/
+                    *dataCounter += index2-index1;/*with terminatil null character*/
                     break;
                 case ENTRY:/*Ignore, only on second pass*/ /*need to validate rest of line? https://opal.openu.ac.il/mod/ouilforum/discuss.php?d=2858172&p=6847092#p6847092*/ 
                     break;
@@ -272,12 +272,14 @@ int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCo
     }
 
     /*Register*/
-    else if(line[0] == 'r' && isReg(&line[1]) && (cmd->viableOperands & (params == 1 ? OP1_REG : OP2_REG)) ){
-        printf("ERROR: command \"%s\" does not accept register as %s operand ; at line: %d\n",
-                cmd->cmdName,
-                (params == 1) ? "1st" : "2nd",
-                lineCounter);
-        return FALSE;
+    else if(line[0] == 'r' && isReg(&line[1])){
+        if(!(cmd->viableOperands & (params == 1 ? OP1_REG : OP2_REG))){
+            printf("ERROR: command \"%s\" does not accept register as %s operand ; at line: %d\n",
+                    cmd->cmdName,
+                    (params == 1) ? "1st" : "2nd",
+                    lineCounter);
+            return FALSE;
+        }
     }
 
     /*Relative*/
@@ -289,13 +291,10 @@ int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCo
             (params == 1) ? "1st" : "2nd",
             lineCounter);
         }
-        while(!isspace(line[i]))
+        while(!isspace(line[i]) && line[i] != ',')
             ++i;
-        if(line[i] == '\0'){
-            printf("ERROR: no label after '&' ; at line: %d\n", lineCounter);
-            return FALSE;
-        }
-        storeWord(&label, line, i+1);
+
+        storeWord(&label, line+1, i-1);
         if(!isValidLabel(label.currentWord, label.len, lineCounter)){
             return FALSE;
         }
@@ -305,9 +304,9 @@ int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCo
     /*Label*/
     else{
         int i = 0;
-        while(!isspace(i))
+        while(!isspace(line[i])&& line[i] != ',')
             ++i;
-        storeWord(&label, line, i+1);
+        storeWord(&label, line, i);
         if(!isValidLabel(label.currentWord, label.len, lineCounter)){
             return FALSE;
         }
@@ -341,7 +340,7 @@ int singleToken(const char* line)
 /*Checks if a given bounded word is a register*/
 int isReg(const char* line)
 {
-    return ((*line - '0') < 8) && (isspace(*line+1) || (*line+1 == ','));
+    return ((*line - '0') < 8) && (isspace(line[1]) || (line[1] == ','));
 }
 /*Consumes and returns number of commas between two words.
  *increments line index.*/
@@ -392,7 +391,7 @@ void getWord(char* line, int* i, int* index1, int* index2)/*TODO: add a flag var
     *index1 = *i;
     while(!isspace(line[*i]) && line[*i] != '\0') 
         ++*i;
-    *index2 = (line[*i] == '\0')? *i :*i-1; /*when no word have been found*/
+    *index2 = (line[*index1] == '\0')? *i :*i-1; /*when no word have been found*/
 }
 void storeWord(Token* t, const char* line, int len)
 {
@@ -421,6 +420,7 @@ int isValidAsmOpt(char* asmOpt, int lineCounter)
 int isValidLabel(char* word, int wordLen, int lineCounter)
 {
     int i;
+    printf("%s\n", word);
     if(wordLen > MAXLABELSIZE){
         printf("ERROR: label exceeds maximum length of %d ; at line: %d\n",MAXLABELSIZE, lineCounter);
         return FALSE;
