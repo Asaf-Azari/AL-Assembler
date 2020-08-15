@@ -56,13 +56,20 @@ int main(int argc, char** argv)
     for(i = 1; i < argc; ++i){/*Main program loop*/
         clearSymbolTable();
         if(!(fp = getFile(argv[i], AS))){/*TODO: fclose after done? */
-           printf("ERROR: Cannot open input file: %s.as skipping \n", argv[i]);
+           printf("ERROR: Cannot open input file: %s.as,  skipping \n", argv[i]);
            continue;
+
         }
         
-        /*printf("%s\n", CMD[0].cmdName); testing CMD inclusion*/
-        if(firstPass(fp,&dataCounter, &instCounter)){
+        if(!firstPass(fp,&dataCounter, &instCounter)){
+            printf("Erros found in file %s.as, skipping \n", argv[i]);
+            continue;
         }
+        /*TODO:*/
+        /*dataTable(dateCounter);*/
+        /*instructionTable(instructionCounter);*/
+        
+
         /*if(!parse2(fp)){
         
         }*/
