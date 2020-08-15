@@ -1,6 +1,5 @@
 #include <stdio.h>
 
-#define MAXPARAM 2
 
 typedef struct{/*current word length and array to hold.
         *We're doing alot of copying in validation functions where

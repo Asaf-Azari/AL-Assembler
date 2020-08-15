@@ -310,27 +310,6 @@ int singleToken(const char* line)
     }
     return tokenFlag;
 }
-/*int isNum(const char* line)
-{
-    char** numSuffix;
-    long int num = strtol(line, numSuffix, 10);
-    if(line == *numSuffix){
-        return FALSE;
-    }
-    if(num < ASM_MIN_INT || num > ASM_MAX_INT){
-        return FALSE;
-    }
-    while(**numSuffix != '\0'){
-        if(!isspace(**numSuffix)){
-            if(**numSuffix == ',')
-                return TRUE;
-            else
-                return FALSE;
-        }
-        ++*numSuffix;
-    }
-    return TRUE;
-}*/
 /*Checks if a given bounded word is a register*/
 int isReg(const char* line)
 {
@@ -416,23 +395,23 @@ int isValidLabel(char* word, int wordLen, int lineCounter)
     int i;
     if(wordLen > MAXLABELSIZE){
         printf("ERROR: label exceeds maximum length of %d ; at line: %d\n",MAXLABELSIZE, lineCounter);
-        return 0;
+        return FALSE;
     }
     if(!isalpha(word[0])){
         printf("ERROR: label must start with a letter <a-z> or <A-Z> ; at line: %d\n",lineCounter);
-        return 0;
+        return FALSE;
     }
     for(i = 0; i < wordLen; i++){
         if(!isalnum(word[i])){
             printf("ERROR: label must be fully alphanumeric and start with a letter ; at line: %d\n",lineCounter);
-            return 0;
+            return FALSE;
         }
     }
     if(isKeyword(word)){
         printf("ERROR: label cannot be a saved keyword ; at line: %d\n",lineCounter);
-        return 0;
+        return FALSE;
     }
-    return 1; /*Valid label*/
+    return TRUE; /*Valid label*/
 }
 int isOp(char* op)
 {   

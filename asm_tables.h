@@ -1,4 +1,5 @@
 #ifndef ASM_TABLES
+
 #define ASM_TABLES
 #define NO_OP 0
 
