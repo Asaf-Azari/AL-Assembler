@@ -55,6 +55,11 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
 
                 getWord(line, &i, &index1, &index2);
                 storeWord(&word, &line[index1], index2-index1+1);
+                if(line[index1] == '\0'){
+                    printf("ERROR: empty label definition ; at line: %d\n", lineCounter);                  
+                    errorFlag = TRUE;
+                    continue;
+                }
             }
             else{
                 errorFlag = TRUE;
@@ -72,6 +77,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                     break;
 
                 case DATA:/*validate and if labelFlag, add to table*/
+                    /*TODO: make validation into a function?*/
                     while(line[i]!='\0'){
                         if(isspace(line[i])){
                             i++;
@@ -113,6 +119,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
 
                 case STRING:/*validate and if labelFlag, add to table*/
                     /*index2 is pointing at 'g' of ".string", index2+1 is the correct one*/
+                    /*TODO: make validation into a function?*/
                     index1 = index2+1;
                     index2 = lineLen-1;
                     while(isspace(line[index1]))
@@ -120,9 +127,16 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                     while(isspace(line[index2]))
                         index2--;
                     if(line[index1]!='"'||line[index2]!='"' || index1 == index2){
-                        printf("ERROR: invalid string ; at line: %d\n",lineCounter);
+                        printf("ERROR: String must be enclosed in double quotes; at line: %d\n",lineCounter);
                         errorFlag = TRUE;
                         continue;
+                    }
+                    for (i=index1; i<=index2; i++){
+                        if(line[i] < ' ' || line[i] > '~'){
+                        printf("ERROR: String must be fully composed of printable ASCII characters: %d\n",lineCounter);
+                        errorFlag = TRUE;
+                        break;  
+                        }
                     }
                     if(labelFlag){
                         if(!exists(labelTemp))
@@ -180,7 +194,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                 addLabel(labelTemp, FALSE, FALSE, *instCounter);
             }
             ++*instCounter;/*Count operand*/
-
+            /*TODO: make validation into a function?*/
             while(isspace(line[i]))
                     ++i;
             if(params == 0 && line[i] != '\0'){/*operands given to 0 operand command*/
@@ -244,7 +258,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
             }/*While end*/
         }/*else if Op*/
         else{
-            printf("Error: unrecognized instruction \"%s\" ; at line: %d\n", word.currentWord, lineCounter);
+            printf("ERROR: unrecognized instruction \"%s\" ; at line: %d\n", word.currentWord, lineCounter);
             errorFlag = TRUE;
             continue;
         }

@@ -7,6 +7,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "constants.h"
 #include "asm_tables.h"
 #include "symbol_table.h"
@@ -21,23 +22,36 @@ int exists(char newLabel[])
     node* currentNode = l.head;
     while(currentNode != NULL){
         if(!strcmp(currentNode->label, newLabel))
-            return 1;
+            return TRUE;
         currentNode = currentNode->nextPtr;
     }
-    return 0;
+    return FALSE;
 }
 
-int isExtern(char newLabel[])
+int isExtern(char Label[])
 {
     node* currentNode = l.head;
     while(currentNode != NULL){
-        if(!strcmp(currentNode->label, newLabel))
+        if(!strcmp(currentNode->label, Label))
             return currentNode->isExtern; /*TODO: make sure this returns by value*/ 
         currentNode = currentNode->nextPtr;
     }
-    return 0;
+    return FALSE;
 }
 
+int makeEntry(char Label[])
+{
+    node* currentNode = l.head;
+    while(currentNode != NULL){
+        if(!strcmp(currentNode->label, Label)){
+            currentNode->isEntry = TRUE;
+            return TRUE;
+        }
+            
+        currentNode = currentNode->nextPtr;
+    }
+    return FALSE;
+}
 /*append node to the list, if the list is empty, appoint node as head*/
 void addNode(node* n)
 {
@@ -63,6 +77,15 @@ void addLabel(char* nodeLabel, unsigned char isData, unsigned char isExtern, uns
     addNode(newNode);
 }
 
+void updateSymbolTable(int instCounter, int dataCounter)
+{
+    node* currentNode = l.head;
+    while(currentNode != NULL){
+        if(!currentNode->isExtern)
+            currentNode->address += (currentNode->isData)? STARTADDRESS + instCounter : STARTADDRESS;
+        currentNode = currentNode->nextPtr;
+    }
+}
 
 void clearSymbolTable()
 {
@@ -75,4 +98,14 @@ void clearSymbolTable()
     }
     l.tail = NULL;
     l.head = NULL;
+}
+
+/*just for testing*/
+void checkSymbolTable()
+{
+    node* currentNode = l.head;
+    while(currentNode != NULL){
+        printf("label - %s , is data %c , is extern %c, is entry %c, address - %d\n", currentNode->label, currentNode->isData, currentNode->isExtern, currentNode->isEntry, currentNode->address);
+        currentNode = currentNode->nextPtr;
+    }
 }

@@ -7,6 +7,7 @@
 #define MAXOPTSIZE 7
 #define MAXPARAM 2
 #define MAXADDRESS 2097151
+#define STARTADDRESS 100
 
 #define FALSE 0
 #define TRUE 1
