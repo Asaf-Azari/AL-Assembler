@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "asm_tables.h"
 
 
 typedef struct{/*current word length and array to hold.

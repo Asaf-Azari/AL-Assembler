@@ -13,7 +13,9 @@
 #include "symbol_table.h"
 
 
+/*static list decleration. users can't directly access*/
 static list l;
+
 /*TODO: Generally test functions.*/
 
 /*Checks if label exists in symbol table*/
@@ -28,22 +30,22 @@ int exists(char newLabel[])
     return FALSE;
 }
 
-int isExtern(char Label[])
+int isExtern(char label[])
 {
     node* currentNode = l.head;
     while(currentNode != NULL){
-        if(!strcmp(currentNode->label, Label))
+        if(!strcmp(currentNode->label, label))
             return currentNode->isExtern; /*TODO: make sure this returns by value*/ 
         currentNode = currentNode->nextPtr;
     }
     return FALSE;
 }
 
-int makeEntry(char Label[])
+int makeEntry(char label[])
 {
     node* currentNode = l.head;
     while(currentNode != NULL){
-        if(!strcmp(currentNode->label, Label)){
+        if(!strcmp(currentNode->label, label)){
             currentNode->isEntry = TRUE;
             return TRUE;
         }
@@ -65,7 +67,6 @@ void addNode(node* n)
     }
 }
 /*Creates node to be added to list*/
-/*TOOD: check if can return by value. probably not considering it should be freed as scope ends*/
 void addLabel(char* nodeLabel, unsigned char isData, unsigned char isExtern, unsigned int address)
 {
     node* newNode = (node*) malloc(sizeof(node));
@@ -77,6 +78,7 @@ void addLabel(char* nodeLabel, unsigned char isData, unsigned char isExtern, uns
     addNode(newNode);
 }
 
+/*TODO: I think we need a more meaningful name for what the function does*/
 void updateSymbolTable(int instCounter, int dataCounter)
 {
     node* currentNode = l.head;

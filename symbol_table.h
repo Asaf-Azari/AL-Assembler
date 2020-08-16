@@ -13,8 +13,8 @@ typedef struct list{
 } list;
 
 int exists(char* newLabel);
-int isExtern(char Label[]);
-int makeEntry(char Label[]);
+int isExtern(char label[]);
+int makeEntry(char label[]);
 void updateSymbolTable(int instCounter, int dataCounter);
 void checkSymbolTable();
 void addLabel(char* nodeLabel, unsigned char isData, unsigned char isExtern, unsigned int address);

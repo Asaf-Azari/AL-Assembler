@@ -177,7 +177,6 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
             }
         }
         else if((cmdIndex = isOp(word.currentWord)) != -1){
-            int lineError = FALSE;
             int start = i;/*index pointing to first operand*/
             int wordIdx;
             int commas = 0;/*Counting commas*/
@@ -220,7 +219,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                 i++;
             }
             if(params == 1 && commas > 0){
-                errorFlag = lineError = TRUE;
+                errorFlag = TRUE;
                 printf("ERROR: command \"%s\" accepts 1 operand, extranous comma ; at line: %d\n",
                 CMD[cmdIndex].cmdName,
                 lineCounter);
@@ -228,7 +227,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                 continue;
             }
             else if(params == 2 && commas != 1){
-                errorFlag = lineError = TRUE;
+                errorFlag = TRUE;
                 printf("ERROR: command \"%s\" accepts 2 operands, %s ; at line: %d\n",
                 CMD[cmdIndex].cmdName,
                 (commas > 1) ? "extranous comma" : "missing comma",
@@ -236,10 +235,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
 
                 continue;
             }
-            /*TODO: lineError is currently use to break out of the loop
-             *since break within the switch case isn't breaking the loop.
-             *maybe we should just switch to if else if statements?*/
-            while(params && !lineError){
+            while(params){
                 wordIdx = (params == MAXPARAM) ? commaIndex+1 : start;/*According to number of params, let index point to word*/
                 while(isspace(line[wordIdx]))
                     ++wordIdx;

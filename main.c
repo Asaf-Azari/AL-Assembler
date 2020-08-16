@@ -6,7 +6,7 @@
 #include "assembler.h"
 #include "asm_tables.h"
 #include "first_pass.h"
-
+#include "second_pass.h"
 
 
 /*acquiring FILE* with FILETYPE extension for writing/reading.*/
@@ -65,6 +65,10 @@ int main(int argc, char** argv)
         printf("data:%d inst:%d\n", dataCounter,instCounter);/*for debug*/
         updateSymbolTable(instCounter,dataCounter);
         checkSymbolTable();
+
+        rewind(fp);
+        if(!secondPass(fp, dataCounter, instCounter)){
+        }
 
         /*TODO:*/
         /*dataTable(dateCounter);*/
