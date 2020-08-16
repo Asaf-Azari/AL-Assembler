@@ -27,5 +27,5 @@ int isNum(const char* line, char** numSuffix);
 int isReg(const char* line);
 int consumeComma(const char* line, int* i);
 int boundOp(const char* line, int* i);
-int singleToken(const char* line);
+int singleToken(const char* line, int params, int lineCounter);
 int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCounter, int lineCounter);

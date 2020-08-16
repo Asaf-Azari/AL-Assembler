@@ -1,6 +1,3 @@
-/**
- *Program description TODO 
-*/
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

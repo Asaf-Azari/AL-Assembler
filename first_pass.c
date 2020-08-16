@@ -243,8 +243,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                 wordIdx = (params == MAXPARAM) ? commaIndex+1 : start;/*According to number of params, let index point to word*/
                 while(isspace(line[wordIdx]))
                     ++wordIdx;
-                if(!singleToken(&line[wordIdx])){/*If there's more than one token/no token*/
-                    printf("ERROR: missing/extranous operands ; at line: %d\n", lineCounter);
+                if(!singleToken(&line[wordIdx], params, lineCounter)){/*If there's more than one token/no token*/
                     errorFlag = TRUE;
                     break;
                 }
@@ -299,7 +298,7 @@ int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCo
     /*Relative*/
     else if(line[0] == '&'){
         int i = 0;
-        if(!(cmd->viableOperands & (params == 1 ? OP1_RELATIVE : OP2_RELATIVE))){
+        if(!(cmd->viableOperands & ((params == 1) ? OP1_RELATIVE : OP2_RELATIVE))){
             printf("ERROR: command \"%s\" does not support relative addressing at %s operand ; at line: %d\n",
             cmd->cmdName,
             (params == 1) ? "1st" : "2nd",
@@ -321,7 +320,7 @@ int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCo
     /*Label*/
     else{
         int i = 0;
-        while(!isspace(line[i])&& line[i] != ',')
+        while(!isspace(line[i]) && line[i] != ',')
             ++i;
         storeWord(&label, line, i);
         if(!isValidLabel(label.currentWord, label.len, lineCounter)){
@@ -332,7 +331,7 @@ int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCo
 
     return TRUE;
 }
-int singleToken(const char* line)
+int singleToken(const char* line, int params, int lineCounter)
 {
     char tokenFlag = FALSE;
     int i = 0;
@@ -341,8 +340,10 @@ int singleToken(const char* line)
      *do we want this sort of behaviour? tsk tsk.🤔*//*what the shit is that*/
     while(line[i] && line[i] != ','){
         if(!isspace(line[i])){
-            if(tokenFlag)
+            if(tokenFlag){
+                printf("ERROR: extranous operand ; at line: %d\n", lineCounter);
                 return FALSE;
+            }
             else{
                 tokenFlag = TRUE;
                 while(line[i] && !isspace(line[i]) && line[i] != ',')
@@ -351,6 +352,11 @@ int singleToken(const char* line)
             }
         }
         ++i;
+    }
+    if(!tokenFlag){
+        printf("ERROR: missing %s operand ; at line: %d\n", 
+                params == 1 ? "1st" : "2nd",
+                lineCounter);
     }
     return tokenFlag;
 }
