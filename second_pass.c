@@ -34,6 +34,7 @@ int secondPass(FILE* fp, int dataCounter, int instCounter)
             storeWord(&toke, &line[index1], index2-index1+1);
         }
 
+        #define FIRST24 2097151
         if(line[index1] == '.'){
             if(!strcmp(toke.currentWord, ".data")){/*TODO:Encode data*/
                 char* numSuffix;
@@ -42,6 +43,8 @@ int secondPass(FILE* fp, int dataCounter, int instCounter)
                 while(numSuffix[0] != '\0'){/*While there's numbers to read*/
 
                     /*TODO: Encode the number*/
+                    num &= FIRST24;
+
 
                     /*Skipping over commas and whitespace*/
                     i = numSuffix - &line[0];
@@ -76,3 +79,17 @@ int secondPass(FILE* fp, int dataCounter, int instCounter)
 
     }
 }
+/*DATA num/string  = 24 signed
+
+ *immidiet addressing = 3 bits + 21 signed bits
+ *relative addressing = 3 bits + 21 signed
+
+ *direct addressing = 3 bits + 21 unsigned
+ 
+ *opcode = 24 unsigned bits*/
+
+unsigned long i = 2097151;
+
+unsigned long upper = ~(ULONG_MAX << 21) & i;
+unsigned long ARE = 4;
+upper << 3 | ARE

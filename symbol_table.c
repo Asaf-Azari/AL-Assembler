@@ -107,7 +107,7 @@ void checkSymbolTable()
 {
     node* currentNode = l.head;
     while(currentNode != NULL){
-        printf("label - %s , is data %c , is extern %c, is entry %c, address - %d\n", currentNode->label, currentNode->isData, currentNode->isExtern, currentNode->isEntry, currentNode->address);
+        printf("label - %s , is data %d , is extern %d, is entry %d, address - %d\n", currentNode->label, currentNode->isData, currentNode->isExtern, currentNode->isEntry, currentNode->address);
         currentNode = currentNode->nextPtr;
     }
 }
