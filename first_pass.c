@@ -7,6 +7,7 @@
 #include "first_pass.h"
 #include "constants.h"
 
+/*TODO: Do we need to check for dataCounter+instCounter > MAXADDRESS ? or do we do this in encoding the final file?*/
 int firstPass(FILE* fp, int* dataCounter, int* instCounter)
 {
     char line[MAX_LINE_LENGTH + 2];
@@ -133,9 +134,9 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                     }
                     for (i=index1; i<=index2; i++){
                         if(line[i] < ' ' || line[i] > '~'){
-                        printf("ERROR: String must be fully composed of printable ASCII characters: %d\n",lineCounter);
-                        errorFlag = TRUE;
-                        break;  
+                            printf("ERROR: String must be fully composed of printable ASCII characters: %d\n",lineCounter);
+                            errorFlag = TRUE;
+                            break;  
                         }
                     }
                     if(labelFlag){
@@ -147,7 +148,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                             continue; 
                         }
                     }
-                    *dataCounter += index2-index1;/*with terminatil null character*/
+                    *dataCounter += index2-index1;/*with terminating null character*/
                     break;
                 case ENTRY:/*Ignore, only on second pass*/ /*need to validate rest of line? https://opal.openu.ac.il/mod/ouilforum/discuss.php?d=2858172&p=6847092#p6847092*/ 
                     break;

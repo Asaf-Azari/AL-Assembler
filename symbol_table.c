@@ -55,7 +55,7 @@ int makeEntry(char label[])
     return FALSE;
 }
 /*append node to the list, if the list is empty, appoint node as head*/
-void addNode(node* n)
+static void addNode(node* n)
 {
     if(l.head == NULL){
         l.head = n;
@@ -79,7 +79,7 @@ void addLabel(char* nodeLabel, unsigned char isData, unsigned char isExtern, uns
 }
 
 /*TODO: I think we need a more meaningful name for what the function does*/
-void updateSymbolTable(int instCounter, int dataCounter)
+void updateSymbolTable(int dataCounter, int instCounter)
 {
     node* currentNode = l.head;
     while(currentNode != NULL){

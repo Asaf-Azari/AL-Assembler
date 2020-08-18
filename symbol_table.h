@@ -15,7 +15,7 @@ typedef struct list{
 int exists(char* newLabel);
 int isExtern(char label[]);
 int makeEntry(char label[]);
-void updateSymbolTable(int instCounter, int dataCounter);
+void updateSymbolTable(int dataCounter, int instCounter);
 void checkSymbolTable();
 void addLabel(char* nodeLabel, unsigned char isData, unsigned char isExtern, unsigned int address);
 void clearSymbolTable();

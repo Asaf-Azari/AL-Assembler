@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "symbol_table.h"
+#include "mem_array.h"
 #include "assembler.h"
 #include "asm_tables.h"
 #include "first_pass.h"
@@ -44,8 +45,11 @@ FILE* getFile(char* fileName, FILETYPE type)
 int main(int argc, char** argv)
 {
     int i;
-    int dataCounter, instCounter;
+    encodedAsm inst, data;
+    /*int dataCounter, instCounter;
+    unsigned long *instPic, *dataPic;*/
     FILE* fp = NULL;
+
     if(argc == 1){/*no arguments*/
         printf("ERROR: No arguments supplied\n");
         return 0;/*TODO: Return 1?*/
@@ -58,16 +62,25 @@ int main(int argc, char** argv)
 
         }
         
-        if(!firstPass(fp,&dataCounter, &instCounter)){
+        if(!firstPass(fp, &data.counter, &inst.counter)){
             printf("Errors found in file %s.as, skipping \n", argv[i]);
             continue;
         }
-        printf("data:%d inst:%d\n", dataCounter,instCounter);/*for debug*/
-        updateSymbolTable(instCounter,dataCounter);
+        printf("data:%d inst:%d\n", data.counter,inst.counter);/*for debug*/
+        updateSymbolTable(data.counter, inst.counter);
         checkSymbolTable();
 
         rewind(fp);
-        if(!secondPass(fp, dataCounter, instCounter)){
+        inst.arr = createArr(inst.counter);
+        data.arr = createArr(data.counter);
+        if(inst.arr == NULL || data.arr == NULL){
+            printf("Could not allocate memory for %s, terminating program.\n",
+                    inst.arr == NULL ? "instruction picture" : "data picture");
+            clearSymbolTable();
+            fclose(fp);
+            return 0;/*TODO: Return 1?*/
+        }
+        if(!secondPass(fp, &data, &inst)){
         }
 
         /*TODO:*/
@@ -93,4 +106,3 @@ int main(int argc, char** argv)
 /** instruction counter, starts at 100, Data counter **/
 
 
-/** commands */

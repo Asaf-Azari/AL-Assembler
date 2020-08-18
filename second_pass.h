@@ -1,1 +1,1 @@
-int secondPass(FILE* fp, int dataCounter, int instCounter);
+int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst);
