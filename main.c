@@ -9,6 +9,7 @@
 #include "first_pass.h"
 #include "second_pass.h"
 
+/*TODO: go over all the files to correct style*/
 
 /*acquiring FILE* with FILETYPE extension for writing/reading.*/
 FILE* getFile(char* fileName, FILETYPE type)
@@ -46,10 +47,11 @@ int main(int argc, char** argv)
 {
     int i;
     encodedAsm inst, data;
-    /*int dataCounter, instCounter;
-    unsigned long *instPic, *dataPic;*/
     FILE* fp = NULL;
-
+    int cmdIdx;
+    for(cmdIdx = 0; CMD[cmdIdx].cmdName; ++cmdIdx){
+        printf("%.06x\n", CMD[cmdIdx].mask);
+    }
     if(argc == 1){/*no arguments*/
         printf("ERROR: No arguments supplied\n");
         return 0;/*TODO: Return 1?*/
@@ -78,6 +80,7 @@ int main(int argc, char** argv)
                     inst.arr == NULL ? "instruction picture" : "data picture");
             clearSymbolTable();
             fclose(fp);
+            /*TODO: free inst/data?*/
             return 0;/*TODO: Return 1?*/
         }
         if(!secondPass(fp, &data, &inst)){

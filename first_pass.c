@@ -84,7 +84,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                             i++;
                             continue;
                         }
-                        if(isNum(&line[i], &numSuffix)){
+                        if(isNum(&line[i], &numSuffix, TRUE)){
                             i = numSuffix - &line[0]; /*TODO: Does this converts the memory address of the pointer to an array index?🤔🤔🤔*/
                             dataArgs++;
                             if(line[i] == ','){
@@ -274,7 +274,7 @@ int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCo
                     lineCounter);
             return FALSE;
         }
-        if(!isNum(&line[1], NULL)){
+        if(!isNum(&line[1], NULL, FALSE)){
             printf("ERROR: invalid number ; at line: %d\n", lineCounter);
             return FALSE;
         }
@@ -471,8 +471,12 @@ int isOp(char* op)
 }
 
 /*is num but recieves the suffix pointer*/
-int isNum(const char* line, char** numSuffix)
+int isNum(const char* line, char** numSuffix, char isData)
 {
+    /*Minimum and maximum value for number*/
+    long int min = isData ? ASM_DATA_MIN_INT : ASM_INST_MIN_INT;
+    long int max = isData ? ASM_DATA_MAX_INT : ASM_INST_MAX_INT;
+
     char* localSuffix;
     long int num = strtol(line, &localSuffix, 10);
     if(numSuffix == NULL){
@@ -486,7 +490,7 @@ int isNum(const char* line, char** numSuffix)
     if(line == *numSuffix){
         return FALSE;
     }
-    if(num < ASM_MIN_INT || num > ASM_MAX_INT){
+    if(num < min || num > max){
         return FALSE;
     }
     while(**numSuffix != '\0'){

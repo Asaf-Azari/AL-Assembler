@@ -5,7 +5,7 @@ typedef struct node{
     unsigned char isData;
     unsigned char isExtern;
     unsigned char isEntry;
-    unsigned int  address;/*TODO: maybe signed*/
+    unsigned int  address;/*TODO: change to something with at least 21 bits*/
 } node;
 typedef struct list{
     node* head;

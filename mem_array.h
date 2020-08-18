@@ -1,8 +1,11 @@
 /*Might need to change the name, but I think bundeling them together
  *makes it easier to pass into secondPass.*/
 typedef struct{
+    unsigned int memory : 24;
+} memWord;
+typedef struct{
     int counter;
-    unsigned long* arr;
+    memWord* arr;
 } encodedAsm;
-unsigned long* createArr(int counter);
-void freeArr(unsigned long* arr);
+memWord* createArr(int counter);
+void freeArr(memWord* arr);
