@@ -122,7 +122,7 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                     inst->arr[instIdx+addWords].memory = ENCODE_NUM(op.type.num);
                 }
                 else if(op.addressing == DIRECT){
-                    long address;/*TODO: verify if signed long is enough to hold address*/
+                    long address;/*TODO: verify if signed long is enough to hold address - its minimum 32 bits*/
                     /*mask*/
                     inst->arr[instIdx].memory |= ENCODE_ADDRESS_REG(0, DIRECT, adderShift);
                     /*exists*/
@@ -146,7 +146,7 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                     }
                 }
                 else if(op.addressing == RELATIVE){
-                    long address;/*TODO: verify if signed long is enough to hold address*/
+                    long address;/*TODO: verify if signed long is enough to hold address- GUARANTEED 32 BITS*/
                     unsigned long mask = 0;
                     /*mask*/
                     inst->arr[instIdx].memory |= ENCODE_ADDRESS_REG(0, RELATIVE, adderShift);

@@ -18,7 +18,7 @@ static list l;
 
 /*TODO: Generally test functions.*/
 
-/*TODO: not sure long is enough to hold address?*/
+/*TODO: not sure long is enough to hold address? WHY DIDNT YOU GOOGLE THIS*/
 long getAddress(char label[])
 {
     node* currentNode = l.head;
