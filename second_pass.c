@@ -73,6 +73,7 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                 while(isspace(line[index2]))
                     index2--;
                 /*Starting after '"'*/
+                index1++;/* fence posting*/
                 for(; index1 < index2; ++index1){/*TODO: correct index2 to be correct*/
                     data->arr[dataIdx++].memory = line[index1];
                 }
@@ -166,12 +167,7 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                     }
                     /*encode address jump into instIdx+addWords*/
                     ++addWords;
-                    if(instIdx+STARTADDRESS > address){
-                        mask = ((address - (instIdx+STARTADDRESS)) << 3) | 4;
-                    }
-                    else{
-                        mask = (((instIdx+STARTADDRESS) - address) << 3) | 4;
-                    }
+                    mask = ((address - (instIdx+STARTADDRESS)) << 3) | 4;
                     inst->arr[instIdx+addWords].memory = mask;
                 }
                 else if(op.addressing  ==  REG){
@@ -186,15 +182,14 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
     
 
 
-#if 0 /*Debugging*/
-    {
+    {/* TODO: This prints the formatted way, just need to add the two counters at the top*/
         int i;
+        int d;
         for(i = 0; i < inst->counter; ++i)
-            printf("%.06x\n", inst->arr[i].memory);
-        for(i = 0; i < data->counter; ++i)
-            printf("%.06x\n", data->arr[i].memory);
+            printf("%.07d %.06x\n", 100+i, inst->arr[i].memory);
+        for(d = 0; d < data->counter; ++d)
+            printf("%.07d %.06x\n", 100+i+d, data->arr[d].memory);
     }
-#endif
 }
 
 Operand parseOperand(Token* t)
