@@ -18,6 +18,17 @@ static list l;
 
 /*TODO: Generally test functions.*/
 
+/*TODO: not sure long is enough to hold address?*/
+long getAddress(char label[])
+{
+    node* currentNode = l.head;
+    while(currentNode != NULL){
+        if(!strcmp(currentNode->label, label))
+            return currentNode->address;
+        currentNode = currentNode->nextPtr;
+    }
+    return -1;
+}
 /*Checks if label exists in symbol table*/
 int exists(char newLabel[])
 {
@@ -29,7 +40,6 @@ int exists(char newLabel[])
     }
     return FALSE;
 }
-
 int isExtern(char label[])
 {
     node* currentNode = l.head;
@@ -107,7 +117,7 @@ void checkSymbolTable()
 {
     node* currentNode = l.head;
     while(currentNode != NULL){
-        printf("label - %s , is data %d , is extern %d, is entry %d, address - %d\n", currentNode->label, currentNode->isData, currentNode->isExtern, currentNode->isEntry, currentNode->address);
+        printf("label - %s , is data %d , is extern %d, is entry %d, address - %ld\n", currentNode->label, currentNode->isData, currentNode->isExtern, currentNode->isEntry, currentNode->address);
         currentNode = currentNode->nextPtr;
     }
 }

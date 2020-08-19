@@ -49,9 +49,11 @@ int main(int argc, char** argv)
     encodedAsm inst, data;
     FILE* fp = NULL;
     int cmdIdx;
-    for(cmdIdx = 0; CMD[cmdIdx].cmdName; ++cmdIdx){
+#if 0
+    for(cmdIdx = 0; CMD[cmdIdx].cmdName; ++cmdIdx){/*DEBUG*/
         printf("%.06x\n", CMD[cmdIdx].mask);
     }
+#endif
     if(argc == 1){/*no arguments*/
         printf("ERROR: No arguments supplied\n");
         return 0;/*TODO: Return 1?*/

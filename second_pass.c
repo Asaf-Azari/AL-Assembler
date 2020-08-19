@@ -3,18 +3,28 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "bit_masks.h" 
+#include "util.h"
+#include "masks.h"
 #include "mem_array.h"
 #include "constants.h"
 #include "first_pass.h"
 #include "symbol_table.h"
 #include "second_pass.h"
+
+enum{
+    IMMEDIATE,
+    DIRECT,
+    RELATIVE,
+    REG
+}addressingType;
+
 int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
 {
     char line[MAX_LINE_LENGTH + 2];
     Token toke;
     char errorFlag = FALSE;
     int lineCounter = 0;
+    int lineLen;
     int i = 0;
     int index1, index2;
     int dataIdx = 0, instIdx = 0;
@@ -22,6 +32,7 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
         int cmdIndex;
         i = 0;
         ++lineCounter;
+        lineLen = strlen(line);
 
         while(isspace(line[i]))
             ++i;
@@ -55,9 +66,14 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
             }
             else if(!strcmp(toke.currentWord, ".string")){/*Encode string*/
 
-                getWord(line, &i, &index1, &index2);
+                index1 = index2+1;
+                index2 = lineLen-1;
+                while(isspace(line[index1]))
+                    index1++;
+                while(isspace(line[index2]))
+                    index2--;
                 /*Starting after '"'*/
-                for(index1++; index1 != index2; ++index1){/*TODO: correct index2 to be correct*/
+                for(; index1 < index2; ++index1){/*TODO: correct index2 to be correct*/
                     data->arr[dataIdx++].memory = line[index1];
                 }
                 data->arr[dataIdx++].memory = '\0';/*Terminating null character*/
@@ -74,82 +90,139 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
             }
             continue;
         }
-
-typedef struct{
-    union{
-        int num;
-        int reg;
-        char* label;
-    } type;
-    int addresing;
-} Operand;
         else{/*Operator*/
             Operand op;
+            int commaIndex = i;
             int opNum = 1;
             int addWords = 0;
+
             cmdIndex = isOp(toke.currentWord);
             inst->arr[instIdx].memory = CMD[cmdIndex].mask;
+
+            while(line[commaIndex] != ',' && line[commaIndex] != '\0')
+                ++commaIndex;
             /*TODO: find comma index*/
             while(opNum <= CMD[cmdIndex].numParams){
-                int opIndex = (opNum == 1) ? i : commaIndex+1
-                storeWord(&toke, &line[opIndex], commaIndex - opIndex + 1);
+                int startIndex = (opNum == 1) ? i : commaIndex+1;
+                int endIndex = (opNum == 1) ? commaIndex-1 : lineLen-1;
+                /*TODO:cleanup*/
+                int adderShift = (opNum == 1 && CMD[cmdIndex].numParams == 2) ? 13 : 8;/*TODO: change to defines*/
+                while(isspace(line[startIndex]))
+                    ++startIndex;
+                while(isspace(line[endIndex]))
+                    --endIndex;
+
+                storeWord(&toke, &line[startIndex], endIndex-startIndex+1);
                 op = parseOperand(&toke);
-                switch(op.addresing){
-                    case IMMEDIATE:
-                        /*mask*/
-                        /*encode number into instIdx+opNum*/
-                        ++addWords;
-                        break;
-                    case DIRECT:
-                        /*mask*/
-                        /*exists*/
-                        /*extern and add to extern table*/
-                        /*encode label address into instIdx+opNum*/
-                        ++addWords;
-                        break;
-                    case RELATIVE:
-                        /*mask*/
-                        /*exists*/
-                        /*extern and error*/
-                        /*encode address jump into instIdx+opNum*/
-                        ++addWords;
-                        break;
-                    case REG:
-                        /*mask according to register number*/
-                        break;
+                if(op.addressing == IMMEDIATE){
+                    /*mask*/
+                    inst->arr[instIdx].memory |= ENCODE_ADDRESS_REG(0, IMMEDIATE, adderShift);
+                    /*encode number into instIdx+addWords*/
+                    ++addWords;
+                    inst->arr[instIdx+addWords].memory = ENCODE_NUM(op.type.num);
                 }
-            }
-        }
-    }
-}
-
-/*
-
- while(notcomma){findcomma};
-                    switch(firstoperand-type){
-                        case 0:
-                        mask 
-                        directaddressing(word, instIdx+operand)
-                        case 1:
-                        mask
-                        1. label exists;
-                        2. isextern;
-                        miunyashir(label, instidx+operand)
-                        case 2:
-                        mask
-                        1. label exists;
-                        2. isextern; error!
-                        miunyashir(label, instidx+operand, instIdx)
-                        case 3:
-                        mask;
-
+                else if(op.addressing == DIRECT){
+                    long address;/*TODO: verify if signed long is enough to hold address*/
+                    /*mask*/
+                    inst->arr[instIdx].memory |= ENCODE_ADDRESS_REG(0, DIRECT, adderShift);
+                    /*exists*/
+                    if((address = getAddress(op.type.label)) == -1){
+                        printf("ERROR: label \"%s\" was not declared in file ; at line: %d\n",
+                                op.type.label,
+                                lineCounter);
+                        errorFlag = TRUE;
                     }
 
-*/
+                    ++addWords;
+                    if(isExtern(op.type.label)){
+                        /*encode extern address into instIdx+addWords*/
+                        inst->arr[instIdx+addWords].memory = 1;/*first bit*/
+                        /*add to extern table*/
+                    }
+                    else{
+                        /*encode label address into instIdx+addWords*/
+                        inst->arr[instIdx+addWords].memory = 2;/*second bit*/
+                        inst->arr[instIdx+addWords].memory |= (address << 3);
+                    }
+                }
+                else if(op.addressing == RELATIVE){
+                    long address;/*TODO: verify if signed long is enough to hold address*/
+                    unsigned long mask = 0;
+                    /*mask*/
+                    inst->arr[instIdx].memory |= ENCODE_ADDRESS_REG(0, RELATIVE, adderShift);
+                    /*exists*/
+                    if((address = getAddress(op.type.label)) == -1){
+                        printf("ERROR: label \"%s\" was not declared in file ; at line: %d\n",
+                                op.type.label,
+                                lineCounter);
+                        errorFlag = TRUE;
+                    }
+                    /*extern and error*/
+                    if(isExtern(op.type.label)){
+                        printf("ERROR: cannot jump to external label \"%s\" ; at line: %d\n",
+                                op.type.label,
+                                lineCounter);
+                        errorFlag = TRUE;
+                    }
+                    /*encode address jump into instIdx+addWords*/
+                    ++addWords;
+                    if(instIdx+STARTADDRESS > address){
+                        mask = ((address - (instIdx+STARTADDRESS)) << 3) | 4;
+                    }
+                    else{
+                        mask = (((instIdx+STARTADDRESS) - address) << 3) | 4;
+                    }
+                    inst->arr[instIdx+addWords].memory = mask;
+                }
+                else if(op.addressing  ==  REG){
+                    /*mask according to register number*/
+                    inst->arr[instIdx].memory |= ENCODE_ADDRESS_REG(op.type.reg, REG, adderShift);/*TODO:one argument operators are encoding into destination*/
+                }
+                opNum++;
+            }
+        instIdx += addWords + 1;/*additional words with current one*/
+        }
+    }
+    
 
 
+#if 0 /*Debugging*/
+    {
+        int i;
+        for(i = 0; i < inst->counter; ++i)
+            printf("%.06x\n", inst->arr[i].memory);
+        for(i = 0; i < data->counter; ++i)
+            printf("%.06x\n", data->arr[i].memory);
+    }
+#endif
+}
 
-
+Operand parseOperand(Token* t)
+{
+    Operand op;
+    if(t->currentWord[t->len-1] == ','){
+        --t->len;
+        t->currentWord[t->len] = '\0';
+    }
+    if(t->currentWord[0] == '#'){
+        op.type.num = strtol(&t->currentWord[1], NULL, 10);
+        printf("NUMBER:%ld\n", op.type.num);
+        op.addressing = IMMEDIATE;
+    }
+    else if(t->currentWord[0] == '&'){
+        op.type.label = &t->currentWord[1];
+        op.addressing = RELATIVE;
+    }
+    else if(t->len == 2 && t->currentWord[0] == 'r' && (t->currentWord[t->len-1] >= '0' && t->currentWord[t->len-1] <= '7')){
+        op.type.reg = t->currentWord[t->len-1] - '0';
+        op.addressing = REG;
+    }
+    else{
+        op.type.label = &t->currentWord[0];
+        op.addressing = DIRECT;
+    }
+    return op;
+}
 /*DATA num/string  = 24 signed
 
  *immidiet addressing = 3 bits + 21 signed bits

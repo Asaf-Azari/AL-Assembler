@@ -1,17 +1,18 @@
 #include "constants.h"
 typedef struct node{
     struct node*  nextPtr;
-    char          label[MAXLABELSIZE];
+    char          label[MAXLABELSIZE+1];
     unsigned char isData;
     unsigned char isExtern;
     unsigned char isEntry;
-    unsigned int  address;/*TODO: change to something with at least 21 bits*/
+    unsigned long  address;/*TODO: change to something with at least 21 bits*/
 } node;
 typedef struct list{
     node* head;
     node* tail;
 } list;
 
+long getAddress(char label[]);
 int exists(char* newLabel);
 int isExtern(char label[]);
 int makeEntry(char label[]);

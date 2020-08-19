@@ -1,0 +1,45 @@
+data:9 inst:25
+label - W , is data 0 , is extern 1, is entry 0, address - 0
+label - MAIN , is data 0 , is extern 0, is entry 0, address - 100
+label - LOOP , is data 0 , is extern 0, is entry 0, address - 102
+label - END , is data 0 , is extern 0, is entry 0, address - 124
+label - STR , is data 1 , is extern 0, is entry 0, address - 125
+label - LIST , is data 1 , is extern 0, is entry 0, address - 130
+label - K , is data 1 , is extern 0, is entry 0, address - 133
+label - L3 , is data 0 , is extern 1, is entry 0, address - 0
+NUMBER:48
+NUMBER:-6
+0b680c
+000412
+340004
+000184
+111e04
+000001
+141e1c
+036804
+00042a
+0b3c14
+240814
+0003e2
+050004
+00042a
+ffffd4
+241014
+ffffbc
+140824
+000001
+24100c
+ffff7c
+09080c
+000001
+000001
+3c0004
+000022
+000061
+000062
+000063
+000064
+000000
+000006
+fffff7
+ffff9c
