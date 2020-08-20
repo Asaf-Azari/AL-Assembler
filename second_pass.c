@@ -126,6 +126,7 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
 
                 else if(op.addressing == DIRECT){
                     long address;/*TODO: verify if signed long is enough to hold address - its minimum 32 bits*/
+                    char external;
                     /*mask*/
                     inst->arr[instIdx] |= ENCODE_METHOD_REG(0, DIRECT, adderShift);
                     /*exists*/
@@ -135,9 +136,12 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                                 lineCounter);
                         errorFlag = TRUE;
                     }
-
+                    
                     ++addWords;
-                    inst->arr[instIdx+addWords] = ENCODE_WORD_ADDRESS(address, isExtern(op.type.label));/*first bit*/
+                    external = isExtern(op.type.label);
+                    if(external)
+                        addExternLabel(op.type.label, instIdx+addWords+STARTADDRESS);
+                    inst->arr[instIdx+addWords] = ENCODE_WORD_ADDRESS(address, external);/*first bit*/
                 }
 
                 else if(op.addressing == RELATIVE){
@@ -173,17 +177,7 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
         instIdx += addWords + 1;/*additional words with current one*/
         }
     }
-    
-
-
-    {/* TODO: This prints the formatted way, just need to add the two counters at the top*/
-        int i;
-        int d;
-        for(i = 0; i < inst->counter; ++i)
-            printf("%.07d %.06lx\n", 100+i, inst->arr[i]);
-        for(d = 0; d < data->counter; ++d)
-            printf("%.07d %.06lx\n", 100+i+d, data->arr[d]);
-    }
+    return !errorFlag;
 }
 
 Operand parseOperand(Token* t)

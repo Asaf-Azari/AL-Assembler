@@ -1,4 +1,5 @@
 #include "constants.h"
+#include "stdlib.h"
 typedef struct Node{
     struct   Node*  nextPtr;
     char          label[MAXLABELSIZE+1];
@@ -15,6 +16,8 @@ typedef struct{
 long getAddress(char label[]);
 int exists(char* newLabel);
 int isExtern(char label[]);
+int noEntry();
+void createEnt(FILE* ent);
 int makeEntry(char label[]);
 void applyAsmOffset(int dataCounter, int instCounter);
 void checkSymbolTable();

@@ -113,7 +113,24 @@ void clearSymbolTable()
     l.tail = NULL;
     l.head = NULL;
 }
-
+int noEntry(){
+    Node* n = l.head;
+    while(n != NULL){
+        if(n->isEntry){
+            return TRUE;
+        }
+        n = n->nextPtr;
+    }
+    return FALSE;
+}
+void createEnt(FILE* ent){
+   Node* n = l.head;
+    while(n != NULL){
+        if(n->isEntry)
+            fprintf(ent,"%s %.07ld\n", n->label,n->address);
+        n = n->nextPtr;
+    }
+}
 /*just for testing*/
 void checkSymbolTable()
 {
