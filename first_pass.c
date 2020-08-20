@@ -126,8 +126,14 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                 if (isValidLabel(word.currentWord, word.len, lineCounter)){
                     getWord(line, &i, &index1, &index2);
                     if(line[index1]=='\0'){/*No text after label*/
-                        if(!exists(word.currentWord))/*TODO: do we need to add an error if not extern??*/
+                        if(exists(word.currentWord)&&!isExtern(word.currentWord))/*TODO: do we need to add an error if not extern??*/{
+                            printf("ERROR: Duplicate definition ; at line: %d\n" ,lineCounter);
+                            errorFlag = TRUE;
+                            continue;  
+                        }
+                        else{    
                             addLabel(word.currentWord, FALSE, TRUE, 0);
+                        }
                     }
                     else{
                         printf("ERROR: extranous text after label; at line: %d\n" ,lineCounter);
