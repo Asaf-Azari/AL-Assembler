@@ -55,7 +55,7 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                 num = strtol(&line[i], &numSuffix, 10);/*Fence posting*/
                 while(numSuffix[0] != '\0'){/*While there's numbers to read*/
 
-                    data->arr[dataIdx++].memory = num;/*Encoding*/
+                    data->arr[dataIdx++] = ENCODE_DATA_NUM(num);/*Encoding*/
 
                     i = numSuffix - &line[0];
                     /*Skipping over commas and whitespace*/
@@ -75,9 +75,9 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                 /*Starting after '"'*/
                 index1++;/* fence posting*/
                 for(; index1 < index2; ++index1){/*TODO: correct index2 to be correct*/
-                    data->arr[dataIdx++].memory = line[index1];
+                    data->arr[dataIdx++] = ENCODE_DATA_STRING(line[index1]);
                 }
-                data->arr[dataIdx++].memory = '\0';/*Terminating null character*/
+                data->arr[dataIdx++] = '\0';/*Terminating null character*/
             }
             else if(!strcmp(toke.currentWord, ".entry")){
                 getWord(line, &i, &index1, &index2);
@@ -98,7 +98,7 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
             int addWords = 0;
 
             cmdIndex = isOp(toke.currentWord);
-            inst->arr[instIdx].memory = CMD[cmdIndex].mask;
+            inst->arr[instIdx] = CMD[cmdIndex].mask;
 
             while(line[commaIndex] != ',' && line[commaIndex] != '\0')
                 ++commaIndex;
@@ -115,17 +115,19 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
 
                 storeWord(&toke, &line[startIndex], endIndex-startIndex+1);
                 op = parseOperand(&toke);
+
                 if(op.addressing == IMMEDIATE){
                     /*mask*/
-                    inst->arr[instIdx].memory |= ENCODE_ADDRESS_REG(0, IMMEDIATE, adderShift);
+                    inst->arr[instIdx] |= ENCODE_METHOD_REG(0, IMMEDIATE, adderShift);
                     /*encode number into instIdx+addWords*/
                     ++addWords;
-                    inst->arr[instIdx+addWords].memory = ENCODE_NUM(op.type.num);
+                    inst->arr[instIdx+addWords] = ENCODE_WORD_NUM(op.type.num);
                 }
+
                 else if(op.addressing == DIRECT){
                     long address;/*TODO: verify if signed long is enough to hold address - its minimum 32 bits*/
                     /*mask*/
-                    inst->arr[instIdx].memory |= ENCODE_ADDRESS_REG(0, DIRECT, adderShift);
+                    inst->arr[instIdx] |= ENCODE_METHOD_REG(0, DIRECT, adderShift);
                     /*exists*/
                     if((address = getAddress(op.type.label)) == -1){
                         printf("ERROR: label \"%s\" was not declared in file ; at line: %d\n",
@@ -135,22 +137,14 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                     }
 
                     ++addWords;
-                    if(isExtern(op.type.label)){
-                        /*encode extern address into instIdx+addWords*/
-                        inst->arr[instIdx+addWords].memory = 1;/*first bit*/
-                        /*add to extern table*/
-                    }
-                    else{
-                        /*encode label address into instIdx+addWords*/
-                        inst->arr[instIdx+addWords].memory = 2;/*second bit*/
-                        inst->arr[instIdx+addWords].memory |= (address << 3);
-                    }
+                    inst->arr[instIdx+addWords] = ENCODE_WORD_ADDRESS(address, isExtern(op.type.label));/*first bit*/
                 }
+
                 else if(op.addressing == RELATIVE){
                     long address;/*TODO: verify if signed long is enough to hold address- GUARANTEED 32 BITS*/
-                    unsigned long mask = 0;
+                    /*unsigned long mask = 0;*/
                     /*mask*/
-                    inst->arr[instIdx].memory |= ENCODE_ADDRESS_REG(0, RELATIVE, adderShift);
+                    inst->arr[instIdx] |= ENCODE_METHOD_REG(0, RELATIVE, adderShift);
                     /*exists*/
                     if((address = getAddress(op.type.label)) == -1){
                         printf("ERROR: label \"%s\" was not declared in file ; at line: %d\n",
@@ -167,12 +161,12 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                     }
                     /*encode address jump into instIdx+addWords*/
                     ++addWords;
-                    mask = ((address - (instIdx+STARTADDRESS)) << 3) | 4;
-                    inst->arr[instIdx+addWords].memory = mask;
+                    inst->arr[instIdx+addWords] = ENCODE_JUMP_DISTANCE(address, instIdx+STARTADDRESS);
                 }
+
                 else if(op.addressing == REG){
                     /*mask according to register number*/
-                    inst->arr[instIdx].memory |= ENCODE_ADDRESS_REG(op.type.reg, REG, adderShift);/*TODO:one argument operators are encoding into destination*/
+                    inst->arr[instIdx] |= ENCODE_METHOD_REG(op.type.reg, REG, adderShift);/*TODO:one argument operators are encoding into destination*/
                 }
                 opNum++;
             }
@@ -186,9 +180,9 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
         int i;
         int d;
         for(i = 0; i < inst->counter; ++i)
-            printf("%.07d %.06x\n", 100+i, inst->arr[i].memory);
+            printf("%.07d %.06lx\n", 100+i, inst->arr[i]);
         for(d = 0; d < data->counter; ++d)
-            printf("%.07d %.06x\n", 100+i+d, data->arr[d].memory);
+            printf("%.07d %.06lx\n", 100+i+d, data->arr[d]);
     }
 }
 

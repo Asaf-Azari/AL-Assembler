@@ -1,9 +1,6 @@
-typedef struct{
-    unsigned int memory : 24;
-} memWord;
 typedef struct{/*Holding memory picture along with associated counter*/
     int counter;
-    memWord* arr;
+    unsigned long* arr;
 } encodedAsm;
-memWord* createArr(int counter);
-void freeArr(memWord* arr);
+unsigned long* createArr(int counter);
+void freeArr(unsigned long* arr);

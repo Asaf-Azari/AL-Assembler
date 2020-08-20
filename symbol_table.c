@@ -8,7 +8,7 @@
 /*static list decleration. users can't directly access*/
 static List l;
 
-/*Returns the memory address of label*/
+/*Returns the memory address of label.*/
 long getAddress(char label[])
 {
     Node* currentNode = l.head;
