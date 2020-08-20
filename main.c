@@ -19,6 +19,11 @@ FILE* getFile(char* fileName, FILETYPE type)
     char* append;
     FILE* filePtr;
 
+    if(namePtr == NULL){
+        printf("MEM_ERROR: Could not allocate memory for string\n");
+        printf("Terminating program...\n");
+        exit(1);
+    }
 
     /*strcpy(namePtr, fileName);*/
     switch(type)
@@ -71,33 +76,30 @@ int main(int argc, char** argv)
             continue;
         }
         printf("data:%d inst:%d\n", data.counter,inst.counter);/*for debug*/
-        updateSymbolTable(data.counter, inst.counter);
+        applyAsmOffset(data.counter, inst.counter);
         checkSymbolTable();
 
         rewind(fp);
         inst.arr = createArr(inst.counter);
         data.arr = createArr(data.counter);
         if(inst.arr == NULL || data.arr == NULL){
-            printf("Could not allocate memory for %s, terminating program.\n",
+            printf("MEM_ERROR: Could not allocate memory for %s\n", 
                     inst.arr == NULL ? "instruction picture" : "data picture");
+            printf("Terminating program...\n");
             clearSymbolTable();
             fclose(fp);
             /*TODO: free inst/data?*/
             return 0;/*TODO: Return 1?*/
         }
         if(!secondPass(fp, &data, &inst)){
+            printf("Errors found in file %s.as, skipping \n", argv[i]);
+            continue;
         }
 
         /*TODO:*/
         /*dataTable(dateCounter);*/
         /*instructionTable(instructionCounter);*/
         
-
-        /*if(!parse2(fp)){
-        
-        }*/
-
-
     }
     return 0;
 }

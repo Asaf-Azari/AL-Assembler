@@ -170,7 +170,7 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                     mask = ((address - (instIdx+STARTADDRESS)) << 3) | 4;
                     inst->arr[instIdx+addWords].memory = mask;
                 }
-                else if(op.addressing  ==  REG){
+                else if(op.addressing == REG){
                     /*mask according to register number*/
                     inst->arr[instIdx].memory |= ENCODE_ADDRESS_REG(op.type.reg, REG, adderShift);/*TODO:one argument operators are encoding into destination*/
                 }
@@ -218,11 +218,3 @@ Operand parseOperand(Token* t)
     }
     return op;
 }
-/*DATA num/string  = 24 signed
-
- *immidiet addressing = 3 bits + 21 signed bits
- *relative addressing = 3 bits + 21 signed
-
- *direct addressing = 3 bits + 21 unsigned
- 
- *opcode = 24 unsigned bits*/

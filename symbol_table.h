@@ -1,22 +1,22 @@
 #include "constants.h"
-typedef struct node{
-    struct node*  nextPtr;
+typedef struct Node{
+    struct   Node*  nextPtr;
     char          label[MAXLABELSIZE+1];
     unsigned char isData;
     unsigned char isExtern;
     unsigned char isEntry;
-    unsigned long  address;/*TODO: change to something with at least 21 bits*/
-} node;
-typedef struct list{
-    node* head;
-    node* tail;
-} list;
+    unsigned long  address;
+} Node;
+typedef struct{
+    Node* head;
+    Node* tail;
+} List;
 
 long getAddress(char label[]);
 int exists(char* newLabel);
 int isExtern(char label[]);
 int makeEntry(char label[]);
-void updateSymbolTable(int dataCounter, int instCounter);
+void applyAsmOffset(int dataCounter, int instCounter);
 void checkSymbolTable();
 void addLabel(char* nodeLabel, unsigned char isData, unsigned char isExtern, unsigned int address);
 void clearSymbolTable();

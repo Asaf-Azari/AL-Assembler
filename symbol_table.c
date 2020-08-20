@@ -1,10 +1,3 @@
-/** LINKED LIST 
- * 1.  pointer to next item
- * 2.  label
- * 3.  data/instruction
- * 4.  extern/not extern
- * 5.  address**/
-
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,16 +5,13 @@
 #include "asm_tables.h"
 #include "symbol_table.h"
 
-
 /*static list decleration. users can't directly access*/
-static list l;
+static List l;
 
-/*TODO: Generally test functions.*/
-
-/*TODO: not sure long is enough to hold address? WHY DIDNT YOU GOOGLE THIS*/
+/*Returns the memory address of label*/
 long getAddress(char label[])
 {
-    node* currentNode = l.head;
+    Node* currentNode = l.head;
     while(currentNode != NULL){
         if(!strcmp(currentNode->label, label))
             return currentNode->address;
@@ -29,10 +19,10 @@ long getAddress(char label[])
     }
     return -1;
 }
-/*Checks if label exists in symbol table*/
+/*Checks if label exists in the symbol table*/
 int exists(char newLabel[])
 {
-    node* currentNode = l.head;
+    Node* currentNode = l.head;
     while(currentNode != NULL){
         if(!strcmp(currentNode->label, newLabel))
             return TRUE;
@@ -40,20 +30,23 @@ int exists(char newLabel[])
     }
     return FALSE;
 }
+/*Checks if a given label is external.
+ *Does NOT verify that the label exists within the table.*/
 int isExtern(char label[])
 {
-    node* currentNode = l.head;
+    Node* currentNode = l.head;
     while(currentNode != NULL){
         if(!strcmp(currentNode->label, label))
-            return currentNode->isExtern; /*TODO: make sure this returns by value*/ 
+            return currentNode->isExtern;
         currentNode = currentNode->nextPtr;
     }
     return FALSE;
 }
 
+/*Marks a label within the symbol table with entry property.*/
 int makeEntry(char label[])
 {
-    node* currentNode = l.head;
+    Node* currentNode = l.head;
     while(currentNode != NULL){
         if(!strcmp(currentNode->label, label)){
             currentNode->isEntry = TRUE;
@@ -64,8 +57,9 @@ int makeEntry(char label[])
     }
     return FALSE;
 }
-/*append node to the list, if the list is empty, appoint node as head*/
-static void addNode(node* n)
+/*Append node to the list, if the list is empty, appoint node as head.
+ *Should not be used by used by the user as it is an implementation detail.*/
+static void addNode(Node* n)
 {
     if(l.head == NULL){
         l.head = n;
@@ -76,10 +70,15 @@ static void addNode(node* n)
         l.tail = n;
     }
 }
-/*Creates node to be added to list*/
+/*Creates a label with given parameters and adds it to the symbol table.*/
 void addLabel(char* nodeLabel, unsigned char isData, unsigned char isExtern, unsigned int address)
 {
-    node* newNode = (node*) malloc(sizeof(node));
+    Node* newNode = (Node*) malloc(sizeof(Node));
+    if(newNode == NULL){
+        printf("MEM_ERROR: Could not allocate memory for label \"%s\"", nodeLabel);
+        printf("Terminating program...\n");
+        exit(1);
+    }
     strcpy(newNode->label, nodeLabel);
     newNode->isData = isData;
     newNode->isExtern = isExtern;
@@ -89,9 +88,11 @@ void addLabel(char* nodeLabel, unsigned char isData, unsigned char isExtern, uns
 }
 
 /*TODO: I think we need a more meaningful name for what the function does*/
-void updateSymbolTable(int dataCounter, int instCounter)
+/*According to the symbol's type(inst/data), applies an address offset
+ *to enable loadable assembly from memory*/
+void applyAsmOffset(int dataCounter, int instCounter)
 {
-    node* currentNode = l.head;
+    Node* currentNode = l.head;
     while(currentNode != NULL){
         if(!currentNode->isExtern)
             currentNode->address += (currentNode->isData)? STARTADDRESS + instCounter : STARTADDRESS;
@@ -99,10 +100,11 @@ void updateSymbolTable(int dataCounter, int instCounter)
     }
 }
 
+/*Free all allocated symbols*/
 void clearSymbolTable()
 {
-    node* current;
-    node* n = l.head;
+    Node* current;
+    Node* n = l.head;
     while(n != NULL){
         current = n;
         n = n->nextPtr;
@@ -115,7 +117,7 @@ void clearSymbolTable()
 /*just for testing*/
 void checkSymbolTable()
 {
-    node* currentNode = l.head;
+    Node* currentNode = l.head;
     while(currentNode != NULL){
         printf("label - %s , is data %d , is extern %d, is entry %d, address - %ld\n", currentNode->label, currentNode->isData, currentNode->isExtern, currentNode->isEntry, currentNode->address);
         currentNode = currentNode->nextPtr;
