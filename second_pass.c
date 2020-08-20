@@ -189,7 +189,6 @@ Operand parseOperand(Token* t)
     }
     if(t->currentWord[0] == '#'){
         op.type.num = strtol(&t->currentWord[1], NULL, 10);
-        printf("NUMBER:%ld\n", op.type.num);
         op.addressing = IMMEDIATE;
     }
     else if(t->currentWord[0] == '&'){

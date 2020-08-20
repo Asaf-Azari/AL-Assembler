@@ -25,6 +25,7 @@ int main(int argc, char** argv)
     for(i = 1; i < argc; ++i){/*Main program loop*/
         if(fp != NULL){
             freeMemory(fp, &inst, &data);
+            
         }
         if(!(fp = getFile(argv[i], AS))){/*TODO: fclose after done? */
            printf("ERROR: Cannot open input file: %s.as,  skipping \n", argv[i]);

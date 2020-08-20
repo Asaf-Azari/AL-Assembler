@@ -84,6 +84,7 @@ void addLabel(char* nodeLabel, unsigned char isData, unsigned char isExtern, uns
     newNode->isExtern = isExtern;
     newNode->address = address;
     newNode->isEntry = FALSE; /*TODO: function to change a nodes status as enry as it is only added at the second pass*/
+    newNode->nextPtr = NULL;
     addNode(newNode);
 }
 

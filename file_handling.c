@@ -87,7 +87,7 @@ void createOuput(char* fileName, encodedAsm* inst, encodedAsm* data)
 }
 void freeMemory(FILE* fp, encodedAsm* inst, encodedAsm* data)
 {
-    if(!fclose(fp)){
+    if(fclose(fp)){
         printf("Error was encountred trying to close an input file.\n");
     }
     resetPicture(inst);
