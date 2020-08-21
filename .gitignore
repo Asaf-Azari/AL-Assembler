@@ -52,6 +52,11 @@ Mkfile.old
 dkms.conf
 
 #more stuff
+*.swp
 *.json
 /.vscode
 *.as
+/test_files
+*.ext
+*.ent
+*.ob
