@@ -28,14 +28,14 @@ int main(int argc, char** argv)
             
         }
         if(!(fp = getFile(argv[i], AS))){/*TODO: fclose after done? */
-           printf("ERROR: Cannot open input file: %s.as,  skipping \n", argv[i]);
+           printf("\n@@@@@@@@@@ Cannot open input file: %s.as,  skipping @@@@@@@@@@ \n", argv[i]);
            continue;
-
         }
+        printf("\n@@@@@@@@@@ parsing file %s.as @@@@@@@@@@ \n", argv[i]);
+        
         
         if(!firstPass(fp, &data.counter, &inst.counter)){
-            printf("Errors found in file %s.as, skipping \n", argv[i]);
-            fclose(fp);
+            printf("@@@@@@@@@@ Errors found in file %s.as, skipping @@@@@@@@@@ \n", argv[i]);
             continue;
         }
         applyAsmOffset(data.counter, inst.counter);
@@ -43,6 +43,7 @@ int main(int argc, char** argv)
         rewind(fp);
         inst.arr = createArr(inst.counter);
         data.arr = createArr(data.counter);
+        #if 0 /*should probably take this out of main*/
         if(inst.arr == NULL || data.arr == NULL){
             printf("MEM_ERROR: Could not allocate memory for %s\n", 
                     inst.arr == NULL ? "instruction picture" : "data picture");
@@ -52,11 +53,14 @@ int main(int argc, char** argv)
             /*TODO: free inst/data?*/
             return 0;/*TODO: Return 1?*/
         }
+        #endif
         if(!secondPass(fp, &data, &inst)){
-            printf("Errors found in file %s.as, skipping \n", argv[i]);
+            printf("@@@@@@@@@@ Errors found in file %s.as, skipping @@@@@@@@@@ \n", argv[i]);
             continue;
         }
+        printf("@@@@@@@@@@ %s.as transpiled successfully, outputting files @@@@@@@@@@ \n", argv[i]);
         createOuput(argv[i], &inst, &data);
+
     }
     return 0;
 }

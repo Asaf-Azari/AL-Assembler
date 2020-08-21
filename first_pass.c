@@ -34,7 +34,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
 
         if(line[lineLen-1] != '\n' && !feof(fp)){/*line longer than 80 characters*/
             char c;
-            printf("ERROR: Line exceeds maximum length of %d characters; at line: %d\n" ,MAX_LINE_LENGTH,lineCounter);
+            printf("ERROR:%d: Line exceeds maximum length of %d characters\n" ,lineCounter,MAX_LINE_LENGTH);
             errorFlag = TRUE;
             while((c = fgetc(fp)) != '\n' && c != EOF);
             continue;
@@ -61,7 +61,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                 getWord(line, &i, &index1, &index2);
                 storeWord(&word, &line[index1], index2-index1+1);
                 if(line[index1] == '\0'){
-                    printf("ERROR: empty label definition ; at line: %d\n", lineCounter);                  
+                    printf("ERROR:%d: empty label definition \n", lineCounter);                  
                     errorFlag = TRUE;
                     continue;
                 }
@@ -91,7 +91,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                     if(!exists(labelTemp))
                         addLabel(labelTemp, TRUE, FALSE, *dataCounter);
                     else{
-                        printf("ERROR: Duplicate label; at line: %d\n" ,lineCounter);
+                        printf("ERROR:%d: Duplicate label\n" ,lineCounter);
                         errorFlag = TRUE;
                         continue; 
                     }
@@ -109,7 +109,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                     if(!exists(labelTemp))
                         addLabel(labelTemp, TRUE, FALSE, *dataCounter);
                     else{
-                        printf("ERROR: Duplicate label; at line: %d\n" ,lineCounter);
+                        printf("ERROR:%d: Duplicate label\n" ,lineCounter);
                         errorFlag = TRUE;
                         continue; 
                     }
@@ -127,7 +127,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                     getWord(line, &i, &index1, &index2);
                     if(line[index1]=='\0'){/*No text after label*/
                         if(exists(word.currentWord)&&!isExtern(word.currentWord))/*TODO: do we need to add an error if not extern??*/{
-                            printf("ERROR: Duplicate definition ; at line: %d\n" ,lineCounter);
+                            printf("ERROR:%d: Duplicate definition \n" ,lineCounter);
                             errorFlag = TRUE;
                             continue;  
                         }
@@ -136,7 +136,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                         }
                     }
                     else{
-                        printf("ERROR: extranous text after label; at line: %d\n" ,lineCounter);
+                        printf("ERROR:%d: extranous text after label\n" ,lineCounter);
                         errorFlag = TRUE;
                         continue;
                     }
@@ -156,7 +156,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
             int params = CMD[cmdIndex].numParams;/*number of operands for the command*/
             if(labelFlag){
                 if(exists(labelTemp)){/*TODO: Do you think we should change the other ones to this format? it avoids the else*/
-                    printf("ERROR: Duplicate label; at line: %d\n", lineCounter);
+                    printf("ERROR:%d: Duplicate label\n", lineCounter);
                     errorFlag = TRUE;
                     continue;
                 }
@@ -167,16 +167,16 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
             while(isspace(line[i]))
                     ++i;
             if(params == 0 && line[i] != '\0'){/*operands given to 0 operand command*/
-                    printf("ERROR: command \"%s\" does not accepts operands ; at line: %d\n", CMD[cmdIndex].cmdName, lineCounter);
+                    printf("ERROR:%d: command \"%s\" does not accepts operands \n", lineCounter, CMD[cmdIndex].cmdName);
                     errorFlag = TRUE;
                     continue;
             }
             else if(params != 0 && line[i] == '\0'){/*No operands given*/
-                    printf("ERROR: command \"%s\" accepts %d operand%s, none given ; at line: %d\n", 
+                    printf("ERROR:%d: command \"%s\" accepts %d operand%s, none given \n", 
+                            lineCounter,
                             CMD[cmdIndex].cmdName,
                             params,
-                            (params > 1) ? "s" : "",
-                            lineCounter);
+                            (params > 1) ? "s" : "");
                     errorFlag = TRUE;
                     
                     continue;
@@ -190,18 +190,18 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
             }
             if(params == 1 && commas > 0){
                 errorFlag = TRUE;
-                printf("ERROR: command \"%s\" accepts 1 operand, extranous comma ; at line: %d\n",
-                CMD[cmdIndex].cmdName,
-                lineCounter);
+                printf("ERROR:%d: command \"%s\" accepts 1 operand, extranous comma \n",
+                lineCounter,
+                CMD[cmdIndex].cmdName);
 
                 continue;
             }
             else if(params == 2 && commas != 1){
                 errorFlag = TRUE;
-                printf("ERROR: command \"%s\" accepts 2 operands, %s ; at line: %d\n",
+                printf("ERROR:%d: command \"%s\" accepts 2 operands, %s \n",
+                lineCounter,
                 CMD[cmdIndex].cmdName,
-                (commas > 1) ? "extranous comma" : "missing comma",
-                lineCounter);
+                (commas > 1) ? "extranous comma" : "missing comma");
 
                 continue;
             }
@@ -223,7 +223,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
             }/*While end*/
         }/*else if Op*/
         else{
-            printf("ERROR: unrecognized instruction \"%s\" ; at line: %d\n", word.currentWord, lineCounter);
+            printf("ERROR:%d: unrecognized instruction \"%s\" \n", lineCounter, word.currentWord);
             errorFlag = TRUE;
             continue;
         }
@@ -237,14 +237,14 @@ int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCo
     /*Immediate number*/
     if(line[0] == '#'){
         if(!(cmd->viableOperands & (params == 1 ? OP1_IMMEDIATE : OP2_IMMEDIATE))){
-            printf("ERROR: command \"%s\" does not accept number as %s operand ; at line: %d\n", 
+            printf("ERROR:%d: command \"%s\" does not accept number as %s operand \n", 
+                    lineCounter,
                     cmd->cmdName,
-                    (params == 1) ? "1st" : "2nd",
-                    lineCounter);
+                    (params == 1) ? "1st" : "2nd");
             return FALSE;
         }
         if(!isNum(&line[1], NULL, FALSE)){
-            printf("ERROR: invalid number ; at line: %d\n", lineCounter);
+            printf("ERROR:%d: invalid number \n", lineCounter);
             return FALSE;
         }
         ++*instCounter;
@@ -253,10 +253,10 @@ int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCo
     /*Register*/
     else if(isReg(line)){
         if(!(cmd->viableOperands & (params == 1 ? OP1_REG : OP2_REG))){
-            printf("ERROR: command \"%s\" does not accept register as %s operand ; at line: %d\n",
+            printf("ERROR:%d: command \"%s\" does not accept register as %s operand \n",
+                    lineCounter,
                     cmd->cmdName,
-                    (params == 1) ? "1st" : "2nd",
-                    lineCounter);
+                    (params == 1) ? "1st" : "2nd");
             return FALSE;
         }
     }
@@ -265,15 +265,15 @@ int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCo
     else if(line[0] == '&'){
         int i = 0;
         if(!(cmd->viableOperands & ((params == 1) ? OP1_RELATIVE : OP2_RELATIVE))){
-            printf("ERROR: command \"%s\" does not support relative addressing at %s operand ; at line: %d\n",
+            printf("ERROR:%d: command \"%s\" does not support relative addressing at %s operand \n",
+            lineCounter,
             cmd->cmdName,
-            (params == 1) ? "1st" : "2nd",
-            lineCounter);
+            (params == 1) ? "1st" : "2nd");
         }
         while(!isspace(line[i]) && line[i] != ',')
             ++i;
         /*if(line[i] == '\0'){ TODO: decide if we want to have this
-            printf("ERROR: no label after '&' ; at line: %d\n", lineCounter);
+            printf("ERROR:%d: no label after '&' \n", lineCounter);
             return FALSE;
         }*/
         storeWord(&label, line+1, i-1);
@@ -307,7 +307,7 @@ int singleToken(const char* line, int params, int lineCounter)
     while(line[i] && line[i] != ','){
         if(!isspace(line[i])){
             if(tokenFlag){
-                printf("ERROR: extranous operand ; at line: %d\n", lineCounter);
+                printf("ERROR:%d: extranous operand \n", lineCounter);
                 return FALSE;
             }
             else{
@@ -320,9 +320,9 @@ int singleToken(const char* line, int params, int lineCounter)
         ++i;
     }
     if(!tokenFlag){
-        printf("ERROR: missing %s operand ; at line: %d\n", 
-                params == 1 ? "1st" : "2nd",
-                lineCounter);
+        printf("ERROR:%d: missing %s operand \n", 
+                lineCounter,
+                params == 1 ? "1st" : "2nd");
     }
     return tokenFlag;
 }
@@ -384,7 +384,7 @@ int isValidAsmOpt(char* asmOpt, int lineCounter)
         return ENTRY;
     if(!strcmp(asmOpt, ".extern"))
         return EXTERN;
-    printf("ERROR: invalid assembler instruction at line: %d\n", lineCounter);
+    printf("ERROR:%d: invalid assembler instruction \n", lineCounter);
     return ERROR;
 }
 /*asserts that a given label is a valid label.
@@ -394,21 +394,21 @@ int isValidLabel(char* word, int wordLen, int lineCounter)
 {
     int i;
     if(wordLen > MAXLABELSIZE){
-        printf("ERROR: label exceeds maximum length of %d ; at line: %d\n",MAXLABELSIZE, lineCounter);
+        printf("ERROR:%d: label exceeds maximum length of %d \n",lineCounter, MAXLABELSIZE);
         return FALSE;
     }
     if(!isalpha(word[0])){
-        printf("ERROR: label must start with a letter <a-z> or <A-Z> ; at line: %d\n",lineCounter);
+        printf("ERROR:%d: label must start with a letter <a-z> or <A-Z> \n",lineCounter);
         return FALSE;
     }
     for(i = 0; i < wordLen; i++){
         if(!isalnum(word[i])){
-            printf("ERROR: label must be fully alphanumeric and start with a letter ; at line: %d\n",lineCounter);
+            printf("ERROR:%d: label must be fully alphanumeric and start with a letter \n",lineCounter);
             return FALSE;
         }
     }
     if(isKeyword(word)){
-        printf("ERROR: label cannot be a saved keyword ; at line: %d\n",lineCounter);
+        printf("ERROR:%d: label cannot be a saved keyword \n",lineCounter);
         return FALSE;
     }
     return TRUE; /*Valid label*/
@@ -467,12 +467,12 @@ int validateString(const char* line, int start, int end, int lineCounter)
         end--;
 
     if(line[start]!='"'||line[end]!='"' || start == end){
-        printf("ERROR: String must be enclosed in double quotes; at line: %d\n",lineCounter);
+        printf("ERROR:%d: String must be enclosed in double quotes\n",lineCounter);
         return -1;
     }
     for (i = start; i <= end; i++){
         if(line[i] < ' ' || line[i] > '~'){
-            printf("ERROR: String must be fully composed of printable ASCII characters: %d\n",lineCounter);
+            printf("ERROR:%d: String must be fully composed of printable ASCII characters\n",lineCounter);
             return -1;
         }
     }
@@ -499,12 +499,12 @@ int validateData(const char* line, int i, int lineCounter)
         }
         else{
             storeWord(&t, &line[i], numSuffix - &line[i]+1);
-            printf("ERROR: Invalid number, read: \"%s\" ; at line: %d\n", t.currentWord, lineCounter);                  
+            printf("ERROR:%d: Invalid number, read: \"%s\" \n", lineCounter, t.currentWord);                  
             return -1;
         }
     }
     if(dataArgs != commaCount+1){ /*sanity check that args are 1 more than commas*/
-        printf("ERROR: missing number; at line: %d\n", lineCounter);
+        printf("ERROR:%d: missing number\n", lineCounter);
         return -1;
     }
     return dataArgs;
