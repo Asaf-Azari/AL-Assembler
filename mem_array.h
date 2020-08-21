@@ -7,15 +7,20 @@ typedef struct{/*Holding memory picture along with associated counter*/
     unsigned long* arr;
 } encodedAsm;
 typedef struct ExternLabel{
-    char label[MAXLABELSIZE + 1];
-    unsigned long address;
+    struct{
+        unsigned long  size;
+        unsigned long  counter;
+        unsigned long* arr;
+    }addresses;
     struct ExternLabel* nextLabel;
+    char label[MAXLABELSIZE + 1];
 } ExternLabel;
 typedef struct externList{
     ExternLabel* head;
     ExternLabel* tail;
 } ExternList;
 void addExternLabel(char* label, unsigned long address);
+void incrementLabel(ExternLabel* l, unsigned long newAddress);
 void addToList(ExternLabel* label);
 void printList();
 void createExt(FILE* ext);

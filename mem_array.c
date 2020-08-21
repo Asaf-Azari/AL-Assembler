@@ -13,41 +13,89 @@ void resetPicture(encodedAsm* pic){
     pic->counter = 0;
 }
 
+
+/*====================================================================*/
 static ExternList extList;
 /*List to keep track of mention of external labels*/
 void addExternLabel(char* label, unsigned long address)
 {
-    ExternLabel* new = malloc(sizeof(ExternLabel));
+    ExternLabel* current = extList.head;
+    ExternLabel* new;
+    while(current != NULL){
+        if(!strcmp(current->label, label)){
+            incrementLabel(current, address);
+            return;
+        }
+        current = current->nextLabel;
+    }
+    new = (ExternLabel*)malloc(sizeof(ExternLabel));
     if(new == NULL){
         printf("MEM_ERROR: Could not allocate memory for extern label\n");
         printf("Terminating program...\n");
         exit(1);
     }
     strcpy(new->label, label);
-    new->address = address;
+    /*Some basic size*/
+    new->addresses.arr = (unsigned long*)malloc(sizeof(unsigned long) * 10);
+    if(new->addresses.arr == NULL){
+        printf("MEM_ERROR: Could not allocate memory for extern label\n");
+        printf("Terminating program...\n");
+        exit(1);
+    }
+    new->addresses.counter = 0;
+    new->addresses.arr[0] = address;
+    new->addresses.size = 10;
     new->nextLabel = NULL;
-    addToList(new);
+    if(extList.head == NULL){
+        extList.head = new;
+        extList.tail = new;
+    }
+    else{
+        extList.tail->nextLabel = new;
+        extList.tail = new;
+    }
 } 
+void incrementLabel(ExternLabel* l, unsigned long newAddress)
+{
+    if(++l->addresses.counter == l->addresses.size){
+        /*Reallocate*/
+        unsigned long newSize = l->addresses.size * 1.5;
+        unsigned long* newArr = (unsigned long*)realloc(l->addresses.arr, newSize);
+        if(newArr == NULL){
+            printf("MEM_ERROR: Could not allocate memory for externList\n");
+            printf("Terminating program...\n");
+            exit(1);
+        }
+        l->addresses.arr = newArr;
+        l->addresses.size = newSize;
+    }
+    l->addresses.arr[l->addresses.counter] = newAddress;
+}
+#if 0 
 void addToList(ExternLabel* label)
 {
     if(extList.head == NULL){
         extList.head = label;
-        extList.tail = label;
     }
     else{
         extList.tail->nextLabel = label;
         extList.tail = label;
     }
 }
+#endif
 
 void createExt(FILE* ext)
 {
     ExternLabel* l = extList.head;
     while(l != NULL){
-        fprintf(ext, "%s %.07lu\n", l->label, l->address);
+        int i;
+        for(i = 0; i <= l->addresses.counter; ++i){
+            fprintf(ext, "%s %.07lu\n", l->label, l->addresses.arr[i]);
+        }
         l = l->nextLabel;
     }
 }
+#if 0
 void printList()
 {
     ExternLabel* l = extList.head;
@@ -56,6 +104,7 @@ void printList()
         l = l->nextLabel;
     }
 }
+#endif
 
 int noExtern(){
     return extList.head == NULL;
@@ -67,8 +116,9 @@ void clearExternalList()
     while(n != NULL){
         current = n;
         n = n->nextLabel;
+        free(current->addresses.arr);
         free(current);
     }
-    extList.tail = NULL;
     extList.head = NULL;
+    extList.tail = NULL;
 }
