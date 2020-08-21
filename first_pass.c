@@ -52,7 +52,6 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
             word.len -= 1;/*excluding ':'*/
             word.currentWord[word.len] = '\0';
 
-            /*TODO: need to decide what to do with .extern+regular decleration*/
             if (isValidLabel(word.currentWord, word.len, lineCounter)){
                 labelFlag = TRUE;
                 strncpy(labelTemp, word.currentWord, word.len);
@@ -87,11 +86,11 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                     continue;
                 }
                 if(labelFlag){/*TODO: Don't we have a problem where we don't add labels into the table and then we might miss a double
-                                decleration error?*/
+                                decleration error? - Where?*/
                     if(!exists(labelTemp))
                         addLabel(labelTemp, TRUE, FALSE, *dataCounter);
                     else{
-                        printf("ERROR:%d: Duplicate label\n" ,lineCounter);
+                        printf("ERROR:%d: Duplicate label definition\n" ,lineCounter);
                         errorFlag = TRUE;
                         continue; 
                     }
@@ -109,7 +108,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                     if(!exists(labelTemp))
                         addLabel(labelTemp, TRUE, FALSE, *dataCounter);
                     else{
-                        printf("ERROR:%d: Duplicate label\n" ,lineCounter);
+                        printf("ERROR:%d: Duplicate label definition\n" ,lineCounter);
                         errorFlag = TRUE;
                         continue; 
                     }
@@ -120,14 +119,14 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
             else if(asmOpt == ENTRY){
             }
 
-            else if(asmOpt == EXTERN){/*TODO: put into validation function*/
+            else if(asmOpt == EXTERN){
                 getWord(line, &i, &index1, &index2);
                 storeWord(&word, &line[index1], index2-index1+1);
                 if (isValidLabel(word.currentWord, word.len, lineCounter)){
                     getWord(line, &i, &index1, &index2);
                     if(line[index1]=='\0'){/*No text after label*/
-                        if(exists(word.currentWord)&&!isExtern(word.currentWord))/*TODO: do we need to add an error if not extern??*/{
-                            printf("ERROR:%d: Duplicate definition \n" ,lineCounter);
+                        if(exists(word.currentWord)&&!isExtern(word.currentWord)){/*TODO: do we care?*/
+                            printf("ERROR:%d: Duplicate label\n" ,lineCounter);
                             errorFlag = TRUE;
                             continue;  
                         }
@@ -155,8 +154,8 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
             int commaIndex = -1;/*index pointing to comma*/
             int params = CMD[cmdIndex].numParams;/*number of operands for the command*/
             if(labelFlag){
-                if(exists(labelTemp)){/*TODO: Do you think we should change the other ones to this format? it avoids the else*/
-                    printf("ERROR:%d: Duplicate label\n", lineCounter);
+                if(exists(labelTemp)){/*TODO: Do you think we should change the other ones to this format? it avoids the else - i mean we can but does it matter?*/
+                    printf("ERROR:%d: Duplicate label definition\n", lineCounter);
                     errorFlag = TRUE;
                     continue;
                 }
@@ -228,6 +227,10 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
             continue;
         }
     }/*While fgets*/
+    if(!errorFlag && *instCounter+*dataCounter+STARTADDRESS-1> MAXADDRESS){
+        printf("ERROR: Program exceeds maximum address space of %d\n", MAXADDRESS);
+        errorFlag = TRUE;
+    }
     return !errorFlag;
 }
 int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCounter, int lineCounter)
@@ -333,7 +336,7 @@ int isReg(const char* line)
 }
 /*Consumes and returns number of commas between two words.
  *increments line index.*/
-int consumeComma(const char* line, int* i)
+int consumeComma(const char* line, int* i) /*TODO: we dont use this do we*/
 {
     int commas = 0;
     int j;
@@ -349,7 +352,7 @@ int consumeComma(const char* line, int* i)
 }
 /*bounds operand in line.
  *returns beginning position and increments line index*/
-int boundOp(const char* line, int* i)
+int boundOp(const char* line, int* i) /*TODO: we dont use this do we*/
 {
     int startPos;
     while(isspace(*(line+*i)))
