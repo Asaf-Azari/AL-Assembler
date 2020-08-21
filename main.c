@@ -43,7 +43,7 @@ int main(int argc, char** argv)
         rewind(fp);
         inst.arr = createArr(inst.counter);
         data.arr = createArr(data.counter);
-        #if 0 /*should probably take this out of main*/
+        #if 0 /*TODO: should probably take this out of main*/
         if(inst.arr == NULL || data.arr == NULL){
             printf("MEM_ERROR: Could not allocate memory for %s\n", 
                     inst.arr == NULL ? "instruction picture" : "data picture");
