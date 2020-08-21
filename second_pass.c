@@ -83,9 +83,9 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                 getWord(line, &i, &index1, &index2);
                 storeWord(&toke, &line[index1], index2-index1+1);
                 if(!makeEntry(toke.currentWord)){
-                    printf("ERROR: label \"%s\" was not declared in file ; at line: %d\n",
-                            toke.currentWord,
-                            lineCounter);
+                    printf("ERROR:%d: label \"%s\" was not declared in file\n",
+                            lineCounter,
+                            toke.currentWord);
                     errorFlag = TRUE;
                 }
             }
@@ -131,9 +131,9 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                     inst->arr[instIdx] |= ENCODE_METHOD_REG(0, DIRECT, adderShift);
                     /*exists*/
                     if((address = getAddress(op.type.label)) == -1){
-                        printf("ERROR: label \"%s\" was not declared in file ; at line: %d\n",
-                                op.type.label,
-                                lineCounter);
+                        printf("ERROR:%d: label \"%s\" was not declared in file\n",
+                                lineCounter,
+                                op.type.label);
                         errorFlag = TRUE;
                     }
                     
@@ -151,16 +151,16 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                     inst->arr[instIdx] |= ENCODE_METHOD_REG(0, RELATIVE, adderShift);
                     /*exists*/
                     if((address = getAddress(op.type.label)) == -1){
-                        printf("ERROR: label \"%s\" was not declared in file ; at line: %d\n",
-                                op.type.label,
-                                lineCounter);
+                        printf("ERROR:%d: label \"%s\" was not declared in file\n",
+                                lineCounter,
+                                op.type.label);
                         errorFlag = TRUE;
                     }
                     /*extern and error*/
                     if(isExtern(op.type.label)){
-                        printf("ERROR: cannot jump to external label \"%s\" ; at line: %d\n",
-                                op.type.label,
-                                lineCounter);
+                        printf("ERROR:%d: cannot jump to external label \"%s\"\n",
+                                lineCounter,
+                                op.type.label);
                         errorFlag = TRUE;
                     }
                     /*encode address jump into instIdx+addWords*/
