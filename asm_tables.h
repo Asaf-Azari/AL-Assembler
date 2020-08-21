@@ -15,8 +15,7 @@
 
 typedef struct COMMANDS{
     char*         cmdName;
-    unsigned char opCode;
-    unsigned char funct;
+    unsigned long mask;
     unsigned char numParams;
 
     unsigned char viableOperands;  /*need to define flags in enum/defines */

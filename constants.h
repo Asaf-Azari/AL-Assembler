@@ -12,8 +12,10 @@
 #define FALSE 0
 #define TRUE 1
 
-#define ASM_MIN_INT -1048576
-#define ASM_MAX_INT  1048575
+#define ASM_INST_MIN_INT -1048576/* (2^21)/2 */
+#define ASM_INST_MAX_INT  1048575/* ((2^21)/2) - 1 */
 
+#define ASM_DATA_MIN_INT  -8388608/* (2^24)/2 */
+#define ASM_DATA_MAX_INT  8388607 /* ((2^24)/2) - 1 */
 
 #endif
