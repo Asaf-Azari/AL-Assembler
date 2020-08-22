@@ -83,7 +83,7 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                 getWord(line, &i, &index1, &index2);
                 storeWord(&toke, &line[index1], index2-index1+1);
                 if(!makeEntry(toke.currentWord)){
-                    printf("ERROR:%d: label \"%s\" was not declared in file\n",
+                    printf("ERROR:%d: label \"%s\" not found, cannot add entry point\n",
                             lineCounter,
                             toke.currentWord);
                     errorFlag = TRUE;
@@ -125,7 +125,7 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                     char external;
                     inst->arr[instIdx] |= ENCODE_METHOD_REG(0, DIRECT, adderShift);
                     if((address = getAddress(op.type.label)) == -1){
-                        printf("ERROR:%d: label \"%s\" was not declared in file\n",
+                        printf("ERROR:%d: label \"%s\" was not declared\n",
                                 lineCounter,
                                 op.type.label);
                         errorFlag = TRUE;
@@ -142,7 +142,7 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                     long address;
                     inst->arr[instIdx] |= ENCODE_METHOD_REG(0, RELATIVE, adderShift);
                     if((address = getAddress(op.type.label)) == -1){
-                        printf("ERROR:%d: label \"%s\" was not declared in file\n",
+                        printf("ERROR:%d: label \"%s\" was not declared\n",
                                 lineCounter,
                                 op.type.label);
                         errorFlag = TRUE;
