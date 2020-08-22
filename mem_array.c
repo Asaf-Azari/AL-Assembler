@@ -5,7 +5,13 @@
 /*Creates an array of counter elements of type memWord.
  *Callee need to check against NULL for memory allocation error.*/
 unsigned long* createArr(int counter){
-    return (unsigned long*)calloc(counter, sizeof(unsigned long));
+    unsigned long* ptr =  (unsigned long*)calloc(counter, sizeof(unsigned long));
+    if(ptr == NULL){
+        printf("MEM_ERROR: Could not allocate memory for program picture\n");
+        printf("Terminating program...\n");
+        exit(1);
+    }
+    return ptr;
 }
 void resetPicture(encodedAsm* pic){
     free(pic->arr);
@@ -106,8 +112,8 @@ void printList()
 }
 #endif
 
-int noExtern(){
-    return extList.head == NULL;
+int areExterns(){
+    return extList.head != NULL;
 }
 void clearExternalList()
 {

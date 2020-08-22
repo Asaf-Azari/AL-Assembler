@@ -2,6 +2,8 @@
 #define ASM_MASKS 
 
 #define FIRST24 16777215UL /*2^24-1*/
+#define DEST_REG 8
+#define SRC_REG 13
 #define ENCODE_METHOD_REG(reg, adder, shift) ( (((unsigned long)adder << 3UL)|((unsigned long)reg)) << (unsigned long)shift )
 #define ENCODE_WORD_ADDRESS(address, isExtern) (((unsigned long)!isExtern +1UL) | (address << 3)) 
 #define ENCODE_WORD_NUM(num) ( (((unsigned long)num << 3UL) | 4UL) & FIRST24 )

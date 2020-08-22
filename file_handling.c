@@ -40,7 +40,6 @@ FILE* getFile(char* fileName, FILETYPE type)
     return filePtr;
 }
 
-/*TODO: go over all the files to correct style*/
 void createOb(FILE* ob, encodedAsm* inst, encodedAsm* data)
 {
     int i;
@@ -54,8 +53,7 @@ void createOb(FILE* ob, encodedAsm* inst, encodedAsm* data)
 void createOuput(char* fileName, encodedAsm* inst, encodedAsm* data)
 {
     FILE* ob;
-    /*TODO: change if statements to convey same condition*/
-    if(!noExtern()){
+    if(areExterns()){
         FILE* ext = getFile(fileName, EXT);
         if(ext == NULL){
             printf("ERROR: Could not open file %s.ext for writing. Check your privileges.\n", fileName);
@@ -65,7 +63,7 @@ void createOuput(char* fileName, encodedAsm* inst, encodedAsm* data)
             printf("Error was encountred trying to close an output file.\n");
         }
     }
-    if(noEntry()){
+    if(areEntries()){
         FILE* ent = getFile(fileName, ENT);
         if(ent == NULL){
             printf("ERROR: Could not open file %s.ent for writing. Check your privileges.\n", fileName);

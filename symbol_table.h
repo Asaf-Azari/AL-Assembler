@@ -16,10 +16,9 @@ typedef struct{
 long getAddress(char label[]);
 int exists(char* newLabel);
 int isExtern(char label[]);
-int noEntry();
+int areEntries();
 void createEnt(FILE* ent);
 int makeEntry(char label[]);
 void applyAsmOffset(int dataCounter, int instCounter);
-void checkSymbolTable();
 void addLabel(char* nodeLabel, unsigned char isData, unsigned char isExtern, unsigned int address);
 void clearSymbolTable();

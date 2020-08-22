@@ -53,8 +53,8 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                 char* numSuffix;
                 long int num;
                 num = strtol(&line[i], &numSuffix, 10);/*Fence posting*/
-                while(numSuffix[0] != '\0'){/*While there's numbers to read*/
-
+                while(line[i] != '\0'){/*While there's numbers to read*/
+                    
                     data->arr[dataIdx++] = ENCODE_DATA_NUM(num);/*Encoding*/
 
                     i = numSuffix - &line[0];
@@ -74,7 +74,7 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                     index2--;
                 /*Starting after '"'*/
                 index1++;/* fence posting*/
-                for(; index1 < index2; ++index1){/*TODO: correct index2 to be correct*/
+                for(; index1 < index2; ++index1){
                     data->arr[dataIdx++] = ENCODE_DATA_STRING(line[index1]);
                 }
                 data->arr[dataIdx++] = '\0';/*Terminating null character*/
@@ -102,12 +102,10 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
 
             while(line[commaIndex] != ',' && line[commaIndex] != '\0')
                 ++commaIndex;
-            /*TODO: find comma index*/
             while(opNum <= CMD[cmdIndex].numParams){
                 int startIndex = (opNum == 1) ? i : commaIndex+1;
                 int endIndex = (opNum == 1) ? commaIndex-1 : lineLen-1;
-                /*TODO:cleanup*/
-                int adderShift = (opNum == 1 && CMD[cmdIndex].numParams == 2) ? 13 : 8;/*TODO: change to defines*/
+                int adderShift = (opNum == 1 && CMD[cmdIndex].numParams == 2) ? SRC_REG : DEST_REG;/*Operations with 1 argument use only destination register*/
                 while(isspace(line[startIndex]))
                     ++startIndex;
                 while(isspace(line[endIndex]))
@@ -117,19 +115,15 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                 op = parseOperand(&toke);
 
                 if(op.addressing == IMMEDIATE){
-                    /*mask*/
                     inst->arr[instIdx] |= ENCODE_METHOD_REG(0, IMMEDIATE, adderShift);
-                    /*encode number into instIdx+addWords*/
                     ++addWords;
                     inst->arr[instIdx+addWords] = ENCODE_WORD_NUM(op.type.num);
                 }
 
                 else if(op.addressing == DIRECT){
-                    long address;/*TODO: verify if signed long is enough to hold address - its minimum 32 bits*/
+                    long address;
                     char external;
-                    /*mask*/
                     inst->arr[instIdx] |= ENCODE_METHOD_REG(0, DIRECT, adderShift);
-                    /*exists*/
                     if((address = getAddress(op.type.label)) == -1){
                         printf("ERROR:%d: label \"%s\" was not declared in file\n",
                                 lineCounter,
@@ -145,18 +139,14 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                 }
 
                 else if(op.addressing == RELATIVE){
-                    long address;/*TODO: verify if signed long is enough to hold address- GUARANTEED 32 BITS*/
-                    /*unsigned long mask = 0;*/
-                    /*mask*/
+                    long address;
                     inst->arr[instIdx] |= ENCODE_METHOD_REG(0, RELATIVE, adderShift);
-                    /*exists*/
                     if((address = getAddress(op.type.label)) == -1){
                         printf("ERROR:%d: label \"%s\" was not declared in file\n",
                                 lineCounter,
                                 op.type.label);
                         errorFlag = TRUE;
                     }
-                    /*extern and error*/
                     if(isExtern(op.type.label)){
                         printf("ERROR:%d: cannot jump to external label \"%s\"\n",
                                 lineCounter,
@@ -170,7 +160,7 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
 
                 else if(op.addressing == REG){
                     /*mask according to register number*/
-                    inst->arr[instIdx] |= ENCODE_METHOD_REG(op.type.reg, REG, adderShift);/*TODO:one argument operators are encoding into destination*/
+                    inst->arr[instIdx] |= ENCODE_METHOD_REG(op.type.reg, REG, adderShift);
                 }
                 opNum++;
             }

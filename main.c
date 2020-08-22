@@ -22,14 +22,14 @@ int main(int argc, char** argv)
 
     if(argc == 1){/*no arguments*/
         printf("ERROR: No arguments supplied\n");
-        return 0;/*TODO: Return 1?*/
+        return 0;
     }
     for(i = 1; i < argc; ++i){/*Main program loop*/
         if(fp != NULL){
             freeMemory(fp, &inst, &data);
             
         }
-        if(!(fp = getFile(argv[i], AS))){/*TODO: fclose after done? */
+        if(!(fp = getFile(argv[i], AS))){
            printf("\n@@@@@@@@@@ Cannot open input file: %s.as,  skipping @@@@@@@@@@ \n", argv[i]);
            continue;
         }
@@ -45,17 +45,7 @@ int main(int argc, char** argv)
         rewind(fp);
         inst.arr = createArr(inst.counter);
         data.arr = createArr(data.counter);
-        #if 0 /*TODO: should probably take this out of main*/
-        if(inst.arr == NULL || data.arr == NULL){
-            printf("MEM_ERROR: Could not allocate memory for %s\n", 
-                    inst.arr == NULL ? "instruction picture" : "data picture");
-            printf("Terminating program...\n");
-            clearSymbolTable();
-            fclose(fp);
-            /*TODO: free inst/data?*/
-            return 0;/*TODO: Return 1?*/
-        }
-        #endif
+
         if(!secondPass(fp, &data, &inst)){
             printf("@@@@@@@@@@ Errors found in file %s.as, skipping @@@@@@@@@@ \n", argv[i]);
             continue;

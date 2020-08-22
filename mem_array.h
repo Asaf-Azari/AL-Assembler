@@ -21,7 +21,7 @@ typedef struct externList{
 } ExternList;
 void addExternLabel(char* label, unsigned long address);
 void createExt(FILE* ext);
-int noExtern();
+int areExterns();
 unsigned long* createArr(int counter);
 void resetPicture(encodedAsm* pic);
 void clearExternalList();

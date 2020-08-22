@@ -83,12 +83,11 @@ void addLabel(char* nodeLabel, unsigned char isData, unsigned char isExtern, uns
     newNode->isData = isData;
     newNode->isExtern = isExtern;
     newNode->address = address;
-    newNode->isEntry = FALSE; /*TODO: function to change a nodes status as enry as it is only added at the second pass*/
+    newNode->isEntry = FALSE;
     newNode->nextPtr = NULL;
     addNode(newNode);
 }
 
-/*TODO: I think we need a more meaningful name for what the function does*/
 /*According to the symbol's type(inst/data), applies an address offset
  *to enable loadable assembly from memory*/
 void applyAsmOffset(int dataCounter, int instCounter)
@@ -114,7 +113,7 @@ void clearSymbolTable()
     l.tail = NULL;
     l.head = NULL;
 }
-int noEntry(){
+int areEntries(){
     Node* n = l.head;
     while(n != NULL){
         if(n->isEntry){
@@ -130,14 +129,5 @@ void createEnt(FILE* ent){
         if(n->isEntry)
             fprintf(ent,"%s %.07ld\n", n->label,n->address);
         n = n->nextPtr;
-    }
-}
-/*just for testing*/
-void checkSymbolTable()
-{
-    Node* currentNode = l.head;
-    while(currentNode != NULL){
-        printf("label - %s , is data %d , is extern %d, is entry %d, address - %ld\n", currentNode->label, currentNode->isData, currentNode->isExtern, currentNode->isEntry, currentNode->address);
-        currentNode = currentNode->nextPtr;
     }
 }

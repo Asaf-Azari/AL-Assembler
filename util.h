@@ -11,4 +11,7 @@ typedef struct{/*current word length and array to hold.
 } Token;
 void getWord(char* line, int* i, int* index1, int* index2);
 void storeWord(Token* t, const char* line, int len);
+int isOp(char* op);
+int isKeyword(char* word);
+int isReg(const char* line);
 #endif
