@@ -9,9 +9,10 @@
 #include "constants.h"
 
 /*First pass of our assembler.
- *here we check for syntax errors, add our programs'
+ *first pass checks for syntax errors, add our programs'
  *labels to the symbol table and adjust our instruction
- *and data counters to later allocate memory for memory pictures.
+ *and data counters to allow later allocation of memory for memory pictures.
+ *returns false if any errors were met and true otherwise.
  */
 int firstPass(FILE* fp, int* dataCounter, int* instCounter)
 {
@@ -189,7 +190,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                 continue;
             }
 
-            while(params){/*while we're processing operands*/
+            while(params){/*while there's operands to verify*/
                 wordIdx = (params == MAXPARAM) ? commaIndex+1 : start;/*according to number of params, let index point to operand*/
                 while(isspace(line[wordIdx]))/*skip whitespace*/
                     ++wordIdx;
@@ -227,31 +228,35 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
     }
     return !errorFlag;/*return wheter or not we had an error on first pass*/
 }
-/*Checks the syntax, type and usage of a given operand for a given operator,
- *reports error if found any and adjusts IC according to operand.
- */
+
+/*asserts the syntax, type and usage of a given operand for a given operator.
+ *reports error if found any and adjusts IC according to operand type.
+ *returns false if errors were met and true otherwise.*/
 int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCounter, int lineCounter)
 {
     Token label;/*Holds label for validation*/
 
+    /*cmd->viableOperands & <param> checks the validity of using an operand of a given type
+     *with the given command*/
+
     /*Immediate number*/
     if(line[0] == '#'){
-        if(!(cmd->viableOperands & (params == 1 ? OP1_IMMEDIATE : OP2_IMMEDIATE))){
+        if(!(cmd->viableOperands & ((params == 1) ? OP1_IMMEDIATE : OP2_IMMEDIATE))){
             printf("ERROR:%d: command \"%s\" does not accept number as %s operand \n", 
                     lineCounter,
                     cmd->cmdName,
                     (params == 1) ? "1st" : "2nd");
             return FALSE;
         }
-        if(!isNum(&line[1], NULL, FALSE, lineCounter)){
+        if(!isNum(&line[1], NULL, FALSE, lineCounter)){/*invalid number*/
             return FALSE;
         }
-        ++*instCounter;
+        ++*instCounter;/*count numbers' memory word*/
     }
 
     /*Register*/
     else if(isReg(line)){
-        if(!(cmd->viableOperands & (params == 1 ? OP1_REG : OP2_REG))){
+        if(!(cmd->viableOperands & ((params == 1) ? OP1_REG : OP2_REG))){
             printf("ERROR:%d: command \"%s\" does not accept register as %s operand \n",
                     lineCounter,
                     cmd->cmdName,
@@ -271,40 +276,43 @@ int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCo
             return FALSE;
         }
         while(line[i] != '\0' && !isspace(line[i]) && line[i] != ',')
-            ++i;
+            ++i;/*iterates over label characters*/
 
-        storeWord(&label, line+1, i-1);
-        if(!isValidLabel(label.currentWord, label.len, lineCounter)){
+        storeWord(&label, line+1, i-1);/*store the label, line+1 to exclude &*/
+        if(!isValidLabel(label.currentWord, label.len, lineCounter)){/*Checks validity of label*/
             return FALSE;
         }
-        ++*instCounter;/*Count label*/
+        ++*instCounter;/*count jump memory word*/
     }
 
     /*Label*/
     else{
         int i = 0;
         while(line[i] != '\0' && !isspace(line[i]) && line[i] != ',')
-            ++i;
-        storeWord(&label, line, i);
-        if(!isValidLabel(label.currentWord, label.len, lineCounter)){
+            ++i;/*iterates over label characters*/
+        storeWord(&label, line, i);/*store the label*/
+        if(!isValidLabel(label.currentWord, label.len, lineCounter)){/*Checks validity of label*/
             return FALSE;
         }
-        ++*instCounter;/*Count label*/
+        ++*instCounter;/*count labels' address memory word*/
     }
 
+    /*no errors encountered*/
     return TRUE;
 }
+/*Verifies that there exists a single operand for each side of the comma(if there's a comma).
+ *returns false if no tokens were read or more than 1 tokens were read and true otherwise.*/
 int singleToken(const char* line, int params, int lineCounter)
 {
-    char tokenFlag = FALSE;
+    char tokenFlag = FALSE;/*flag denoting token read*/
     int i = 0;
-    while(line[i] && line[i] != ','){
-        if(!isspace(line[i])){
-            if(tokenFlag){
+    while(line[i] && line[i] != ','){/*while there's input and no comma read*/
+        if(!isspace(line[i])){/*non-whitespace character*/
+            if(tokenFlag){/*if already read a token, another token would be illegal*/
                 printf("ERROR:%d: extranous operand \n", lineCounter);
                 return FALSE;
             }
-            else{
+            else{/*first token read, read remaining characters of said token and continue*/
                 tokenFlag = TRUE;
                 while(line[i] && !isspace(line[i]) && line[i] != ',')
                     ++i;
@@ -313,16 +321,16 @@ int singleToken(const char* line, int params, int lineCounter)
         }
         ++i;
     }
-    if(!tokenFlag){
+    if(!tokenFlag){/*no tokens read, missing an operand*/
         printf("ERROR:%d: missing %s operand \n", 
                 lineCounter,
                 params == 1 ? "1st" : "2nd");
     }
     return tokenFlag;
 }
-
 /*asserts that word is a valid assembly instruction.
- *Must be one of the following: .data, .string, .entry, .extern*/
+ *Must be one of the following: .data, .string, .entry, .extern
+ *returns an enum value according to the type of instruction.*/
 int isValidAsmOpt(char* asmOpt, int lineCounter)
 {
     if(!strcmp(asmOpt, ".data"))
@@ -338,62 +346,62 @@ int isValidAsmOpt(char* asmOpt, int lineCounter)
 }
 /*asserts that a given label is a valid label.
  *a label can have up to 31 characters, begin with a letter 
- *from the range <a-z>/<A-Z> and must be fully alphanumeric*/
+ *from the range <a-z>/<A-Z> and must be fully alphanumeric.
+ *returns false if errors were met and true otherwise.*/
 int isValidLabel(char* word, int wordLen, int lineCounter)
 {
     int i;
-    if(wordLen > MAXLABELSIZE){
+    if(wordLen > MAXLABELSIZE){/*label bigger than MAXLABELSIZE*/
         printf("ERROR:%d: label exceeds maximum length of %d \n",lineCounter, MAXLABELSIZE);
         return FALSE;
     }
-    if(!isalpha(word[0])){
+    if(!isalpha(word[0])){/*beginning with non-alpha character*/
         printf("ERROR:%d: label must start with a letter <a-z> or <A-Z> \n",lineCounter);
         return FALSE;
     }
     for(i = 0; i < wordLen; i++){
-        if(!isalnum(word[i])){
+        if(!isalnum(word[i])){/*non-alphanumeric character in the label*/
             printf("ERROR:%d: label must be fully alphanumeric and start with a letter \n",lineCounter);
             return FALSE;
         }
     }
-    if(isKeyword(word)){
+    if(isKeyword(word)){/*if label is a saved keyword*/
         printf("ERROR:%d: label cannot be a saved keyword \n",lineCounter);
         return FALSE;
     }
     return TRUE; /*Valid label*/
 }
-
-
-/*is num but recieves the suffix pointer*/
+/*asserts that a given char* represents a valid integer
+ *number between a range dictated by isData.
+ *if numSuffix != NULL, the function points *numSuffix to the text after the number.
+ *returns false if errors were met and true otherwise.*/
 int isNum(const char* line, char** numSuffix, char isData, int lineCounter)
 {
     /*Minimum and maximum value for number*/
-    long int min = isData ? ASM_DATA_MIN_INT : ASM_INST_MIN_INT;
-    long int max = isData ? ASM_DATA_MAX_INT : ASM_INST_MAX_INT;
+    long int min = isData ? ASM_DATA_MIN_INT : ASM_INST_MIN_INT;/*instruction range*/
+    long int max = isData ? ASM_DATA_MAX_INT : ASM_INST_MAX_INT;/*.data range*/
 
-    char* localSuffix;
+    char* localSuffix;/*char* pointing to characters after number*/
     long int num = strtol(line, &localSuffix, 10);
-    if(numSuffix == NULL){
+    if(numSuffix == NULL){/*no numSuffix is given*/
         numSuffix = &localSuffix;
     }
-    else{
+    else{/*points *numSuffix to text after number*/
         *numSuffix = localSuffix;
     }
-    /*strtol manpage: "If there were no digits at all, strtol() stores the 
-     *original value of nptr in *endptr (and returns 0)."*/
-    if(line == *numSuffix){
+    if(line == *numSuffix){/*no digits read*/
         printf("ERROR:%d: No number was read\n", lineCounter);
         return FALSE;
     }
-    if(num < min || num > max){
+    if(num < min || num > max){/*number outside of range*/
         printf("ERROR:%d: Number out of range\n",lineCounter);
         return FALSE;
     }
-    while(**numSuffix != '\0'){
+    while(**numSuffix != '\0'){/*characters after number*/
         if(!isspace(**numSuffix)){
-            if(**numSuffix == ',')
+            if(**numSuffix == ',')/*a comma is valid inside a .data instruction*/
                 return TRUE;
-            else{
+            else{/*any other non-whitespace character is illegal after a number*/
                 printf("ERROR:%d: illegal characters after number\n", lineCounter);
                 return FALSE;
             }
@@ -402,79 +410,74 @@ int isNum(const char* line, char** numSuffix, char isData, int lineCounter)
     }
     return TRUE;
 }
+/*asserts that a given char* represents a valid string(after a .string instruction).
+ *-1 return value indicates there was an error, otherwise returns number of characters
+ *inside the string(including null terminating byte).*/
 int validateString(const char* line, int start, int end, int lineCounter)
 {
     int i;
 
+    /*adjusting indicies until non-whitespace character is met*/
     while(isspace(line[start]))
         start++;
     while(isspace(line[end]))
         end--;
 
-    if(line[start]!='"'||line[end]!='"' || start == end){
+    if(line[start]!='"'||line[end]!='"' || start == end){/*anything other then "<printable ASCII characters>" is illegal*/
         printf("ERROR:%d: String must be enclosed in double quotes\n",lineCounter);
         return -1;
     }
-    for (i = start; i <= end; i++){
-        if(line[i] < ' ' || line[i] > '~'){
+    for(i = start; i <= end; i++){/*looping over the strings' characters*/
+        if(line[i] < ' ' || line[i] > '~'){/*outisde of printable ASCII characters range*/
             printf("ERROR:%d: String must be fully composed of printable ASCII characters\n",lineCounter);
             return -1;
         }
     }
-    return end-start;
+    return end-start;/*returns the length of the string(including null byte)*/
 }
+/*validates legality of .data arguments.
+ *returns -1 to indicate error, otherwise returns number of arguments read.*/
 int validateData(const char* line, int i, int lineCounter)
 {
-    char* numSuffix;
-    int dataArgs = 0;
-    int commaCount = 0;
-    while(line[i] != '\0'){
-        if(isspace(line[i])){
+    char* numSuffix;/*points to after characters after number read*/
+    int dataArgs = 0;/*counts the number of numbers read*/
+    int commaCount = 0;/*counts the number of commas read*/
+    while(line[i] != '\0'){/*while there's input*/
+        if(isspace(line[i])){/*skip whitespace*/
             i++;
             continue;
         }
-        if(isNum(&line[i], &numSuffix, TRUE, lineCounter)){
-            i = numSuffix - &line[0]; 
+        if(isNum(&line[i], &numSuffix, TRUE, lineCounter)){/*if found a valid number*/
+            i = numSuffix - &line[0]; /*adjust i to point to text after number*/
             dataArgs++;
-            if(line[i] == ','){
+            if(line[i] == ','){/*count comma if found one*/
                 i++;
                 commaCount++;
             }                  
         }
-        else{                
+        else{/*not a valid number*/                
             return -1;
         }
     }
-    if(dataArgs != commaCount+1){ /*sanity check that args are 1 more than commas*/
+    if(dataArgs != commaCount+1){ /*asserts right number of commas*/
         printf("ERROR:%d: missing number\n", lineCounter);
         return -1;
     }
-    return dataArgs;
+    return dataArgs;/*returns number of arguments read*/
 }
-
-
+/*validates number of operands given to an operator is valid.
+ *returns false if given too many\little operands according to operator pointed to by
+ *cmdIndex and true otherwise.*/
 int validateOpNum(const char* line, int* i, int cmdIndex, int lineCounter)
 {
-    int params = CMD[cmdIndex].numParams;
-    while (isspace(line[*i]))
+    int params = CMD[cmdIndex].numParams;/*locally store number of parameters expected from the operator*/
+    while (isspace(line[*i]))/*skip leading whitespace*/
         ++*i;
-    if (params == 0 && line[*i] != '\0'){ /*operands given to 0 operand command*/
+    if(params == 0 && line[*i] != '\0'){/*operands given to 0 operand operator*/
         printf("ERROR:%d: command \"%s\" does not accepts operands \n", lineCounter, CMD[cmdIndex].cmdName);
         return FALSE;
     }
-    else if (params != 0 && line[*i] == '\0'){ /*No operands given*/
-        printf("ERROR:%d: command \"%s\" accepts %d operand%s, none given \n",
-               lineCounter,
-               CMD[cmdIndex].cmdName,
-               params,
-               (params > 1) ? "s" : "");
-        return FALSE;
-    }
-    if (params == 0 && line[*i] != '\0'){ /*operands given to 0 operand command*/
-        printf("ERROR:%d: command \"%s\" does not accepts operands \n", lineCounter, CMD[cmdIndex].cmdName);
-        return FALSE;
-    }
-    else if (params != 0 && line[*i] == '\0'){ /*No operands given*/
+    else if(params != 0 && line[*i] == '\0'){/*no operands given to an operator expecting paramaters*/
         printf("ERROR:%d: command \"%s\" accepts %d operand%s, none given \n",
                lineCounter,
                CMD[cmdIndex].cmdName,
@@ -484,25 +487,28 @@ int validateOpNum(const char* line, int* i, int cmdIndex, int lineCounter)
     }
     return TRUE;
 }
+/*validates number of commas given to an operator is valid.
+ *returns -1 if there are too many\little commas according to operator pointed to by
+ *cmdIndex and the index pointing to the comma in the line otherwise.*/
 int validateCommas(const char* line, int i, int cmdIndex, int lineCounter)
 {
-    int commas = 0;
-    int commaIndex;
-    int params = CMD[cmdIndex].numParams;
-    while (line[i]){
+    int commas = 0;/*number of commas counted*/
+    int commaIndex;/*index pointing to comma in line*/
+    int params = CMD[cmdIndex].numParams;/*number of parameters expected by operator*/
+    while(line[i] != '\0'){
         if (line[i] == ','){ /*Counting commas in line*/
             ++commas;
-            commaIndex = i;
+            commaIndex = i;/*point to comma*/
         }
         i++;
     }
-    if (params == 1 && commas > 0){
+    if(params == 1 && commas > 0){/*commas for operator taking 1 operand*/
         printf("ERROR:%d: command \"%s\" accepts 1 operand, extranous comma \n",
                lineCounter,
                CMD[cmdIndex].cmdName);
         return -1;
     }
-    else if (params == 2 && commas != 1){
+    else if(params == 2 && commas != 1){/*extra/missing commas for operator taking 2 operands*/
         printf("ERROR:%d: command \"%s\" accepts 2 operands, %s \n",
                lineCounter,
                CMD[cmdIndex].cmdName,
