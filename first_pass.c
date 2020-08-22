@@ -8,7 +8,6 @@
 #include "first_pass.h"
 #include "constants.h"
 
-/*TODO: Do we need to check for dataCounter+instCounter > MAXADDRESS ? or do we do this in encoding the final file?*/
 int firstPass(FILE* fp, int* dataCounter, int* instCounter)
 {
     char line[MAX_LINE_LENGTH + 2];
@@ -150,8 +149,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
         else if((cmdIndex = isOp(word.currentWord)) != -1){/*Operator*/
             int start = i;/*index pointing to first operand*/
             int wordIdx;
-            int commas = 0;/*Counting commas*/
-            int commaIndex = -1;/*index pointing to comma*/
+            int commaIndex;/*index pointing to comma*/
             int params = CMD[cmdIndex].numParams;/*number of operands for the command*/
             if(labelFlag){
                 if(exists(labelTemp)){/*TODO: Do you think we should change the other ones to this format? it avoids the else - i mean we can but does it matter?*/
@@ -163,6 +161,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
             }
             ++*instCounter;/*Count operand*/
             /*TODO: make validation into a function?*/
+            #if 0
             while(isspace(line[i]))
                     ++i;
             if(params == 0 && line[i] != '\0'){/*operands given to 0 operand command*/
@@ -180,6 +179,16 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                     
                     continue;
             }
+            #endif
+            if(!validateOpNum(line, &i, cmdIndex, lineCounter)){
+                errorFlag = TRUE;
+                continue;
+            }
+            if((commaIndex = validateCommas(line, i, cmdIndex, lineCounter)) == -1){
+                errorFlag = TRUE;
+                continue;
+            }
+            #if 0 
             while(line[i]){
                 if(line[i] == ','){/*Counting commas in line*/
                     ++commas;
@@ -204,6 +213,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
 
                 continue;
             }
+            #endif
             while(params){
                 wordIdx = (params == MAXPARAM) ? commaIndex+1 : start;/*According to number of params, let index point to word*/
                 while(isspace(line[wordIdx]))
@@ -227,7 +237,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
             continue;
         }
     }/*While fgets*/
-    if(!errorFlag && *instCounter+*dataCounter+STARTADDRESS-1> MAXADDRESS){
+    if(!errorFlag && *instCounter+*dataCounter+STARTADDRESS-1 > MAXADDRESS){
         printf("ERROR: Program exceeds maximum address space of %d\n", MAXADDRESS);
         errorFlag = TRUE;
     }
@@ -493,7 +503,7 @@ int validateData(const char* line, int i, int lineCounter)
             continue;
         }
         if(isNum(&line[i], &numSuffix, TRUE)){
-            i = numSuffix - &line[0]; /*TODO: Does this converts the memory address of the pointer to an array index?🤔🤔🤔*/
+            i = numSuffix - &line[0]; 
             dataArgs++;
             if(line[i] == ','){
                 i++;
@@ -511,4 +521,64 @@ int validateData(const char* line, int i, int lineCounter)
         return -1;
     }
     return dataArgs;
+}
+
+
+int validateOpNum(const char* line, int* i, int cmdIndex, int lineCounter)
+{
+    int params = CMD[cmdIndex].numParams;
+    while (isspace(line[*i]))
+        ++*i;
+    if (params == 0 && line[*i] != '\0'){ /*operands given to 0 operand command*/
+        printf("ERROR:%d: command \"%s\" does not accepts operands \n", lineCounter, CMD[cmdIndex].cmdName);
+        return FALSE;
+    }
+    else if (params != 0 && line[*i] == '\0'){ /*No operands given*/
+        printf("ERROR:%d: command \"%s\" accepts %d operand%s, none given \n",
+               lineCounter,
+               CMD[cmdIndex].cmdName,
+               params,
+               (params > 1) ? "s" : "");
+        return FALSE;
+    }
+    if (params == 0 && line[*i] != '\0'){ /*operands given to 0 operand command*/
+        printf("ERROR:%d: command \"%s\" does not accepts operands \n", lineCounter, CMD[cmdIndex].cmdName);
+        return FALSE;
+    }
+    else if (params != 0 && line[*i] == '\0'){ /*No operands given*/
+        printf("ERROR:%d: command \"%s\" accepts %d operand%s, none given \n",
+               lineCounter,
+               CMD[cmdIndex].cmdName,
+               params,
+               (params > 1) ? "s" : "");
+        return FALSE;
+    }
+    return TRUE;
+}
+int validateCommas(const char* line, int i, int cmdIndex, int lineCounter)
+{
+    int commas = 0;
+    int commaIndex;
+    int params = CMD[cmdIndex].numParams;
+    while (line[i]){
+        if (line[i] == ','){ /*Counting commas in line*/
+            ++commas;
+            commaIndex = i;
+        }
+        i++;
+    }
+    if (params == 1 && commas > 0){
+        printf("ERROR:%d: command \"%s\" accepts 1 operand, extranous comma \n",
+               lineCounter,
+               CMD[cmdIndex].cmdName);
+        return -1;
+    }
+    else if (params == 2 && commas != 1){
+        printf("ERROR:%d: command \"%s\" accepts 2 operands, %s \n",
+               lineCounter,
+               CMD[cmdIndex].cmdName,
+               (commas > 1) ? "extranous comma" : "missing comma");
+        return -1;
+    }
+    return commaIndex;
 }

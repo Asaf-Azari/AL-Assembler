@@ -18,7 +18,7 @@ FILE* getFile(char* fileName, FILETYPE type)
         exit(1);
     }
 
-    /*strcpy(namePtr, fileName);*/
+    strcpy(namePtr, fileName);
     switch(type)
     {
         case OB:
@@ -34,9 +34,7 @@ FILE* getFile(char* fileName, FILETYPE type)
             append = ENT_TYPE;
             break;
     }
-    /*strcat(namePtr+nameLen, append);*/
-    /*TODO: use sprintf instead?*/
-    sprintf(namePtr, "%s%s", fileName, append);
+    strcat(namePtr+nameLen, append);
     filePtr = fopen(namePtr, type == AS ? "r" : "w");
     free(namePtr);
     return filePtr;
@@ -56,6 +54,7 @@ void createOb(FILE* ob, encodedAsm* inst, encodedAsm* data)
 void createOuput(char* fileName, encodedAsm* inst, encodedAsm* data)
 {
     FILE* ob;
+    /*TODO: change if statements to convey same condition*/
     if(!noExtern()){
         FILE* ext = getFile(fileName, EXT);
         if(ext == NULL){

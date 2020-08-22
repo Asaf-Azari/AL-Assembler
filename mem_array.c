@@ -17,6 +17,22 @@ void resetPicture(encodedAsm* pic){
 /*====================================================================*/
 static ExternList extList;
 /*List to keep track of mention of external labels*/
+static void incrementLabel(ExternLabel* l, unsigned long newAddress)
+{
+    if(++l->addresses.counter == l->addresses.size){
+        /*Reallocate*/
+        unsigned long newSize = l->addresses.size * 1.5;
+        unsigned long* newArr = (unsigned long*)realloc(l->addresses.arr, newSize);
+        if(newArr == NULL){
+            printf("MEM_ERROR: Could not allocate memory for externList\n");
+            printf("Terminating program...\n");
+            exit(1);
+        }
+        l->addresses.arr = newArr;
+        l->addresses.size = newSize;
+    }
+    l->addresses.arr[l->addresses.counter] = newAddress;
+}
 void addExternLabel(char* label, unsigned long address)
 {
     ExternLabel* current = extList.head;
@@ -55,22 +71,6 @@ void addExternLabel(char* label, unsigned long address)
         extList.tail = new;
     }
 } 
-void incrementLabel(ExternLabel* l, unsigned long newAddress)
-{
-    if(++l->addresses.counter == l->addresses.size){
-        /*Reallocate*/
-        unsigned long newSize = l->addresses.size * 1.5;
-        unsigned long* newArr = (unsigned long*)realloc(l->addresses.arr, newSize);
-        if(newArr == NULL){
-            printf("MEM_ERROR: Could not allocate memory for externList\n");
-            printf("Terminating program...\n");
-            exit(1);
-        }
-        l->addresses.arr = newArr;
-        l->addresses.size = newSize;
-    }
-    l->addresses.arr[l->addresses.counter] = newAddress;
-}
 #if 0 
 void addToList(ExternLabel* label)
 {

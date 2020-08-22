@@ -22,3 +22,5 @@ int singleToken(const char* line, int params, int lineCounter);
 int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCounter, int lineCounter);
 int validateString(const char* line, int start, int end, int lineCounter);
 int validateData(const char* line, int i, int lineCounter);
+int validateOpNum(const char* line, int* i, int cmdIndex, int lineCounter);
+int validateCommas(const char* line, int i, int cmdIndex, int lineCounter);

@@ -1,3 +1,5 @@
+/*This program is an assemblerhedy356ywtyhgh*/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
