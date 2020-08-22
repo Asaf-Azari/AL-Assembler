@@ -58,9 +58,11 @@ void createOuput(char* fileName, encodedAsm* inst, encodedAsm* data)
         if(ext == NULL){
             printf("ERROR: Could not open file %s.ext for writing. Check your privileges.\n", fileName);
         }
-        createExt(ext);
-        if(fclose(ext)){
-            printf("Error was encountred trying to close an output file.\n");
+        else{
+            createExt(ext);
+            if(fclose(ext)){
+                printf("Error was encountred trying to close an output file.\n");
+            }
         }
     }
     if(areEntries()){
@@ -68,18 +70,22 @@ void createOuput(char* fileName, encodedAsm* inst, encodedAsm* data)
         if(ent == NULL){
             printf("ERROR: Could not open file %s.ent for writing. Check your privileges.\n", fileName);
         }
-        createEnt(ent);
-        if(fclose(ent)){
-            printf("Error was encountred trying to close an output file.\n");
+        else{
+            createEnt(ent);
+            if (fclose(ent)){
+                printf("Error was encountred trying to close an output file.\n");
+            }
         }
     }
     ob = getFile(fileName, OB);
     if(ob == NULL){
         printf("ERROR: Could not open file %s.ob for writing. Check your privileges.\n", fileName);
     }
-    createOb(ob, inst, data);
-    if(fclose(ob)){
-        printf("Error was encountred trying to close an output file.\n");
+    else{
+        createOb(ob, inst, data);
+        if(fclose(ob)){
+            printf("Error was encountred trying to close an output file.\n");
+        }
     }
 }
 void freeMemory(FILE* fp, encodedAsm* inst, encodedAsm* data)

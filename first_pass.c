@@ -240,10 +240,7 @@ int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCo
         }
         while(line[i] != '\0' && !isspace(line[i]) && line[i] != ',')
             ++i;
-        if(line[i] == '\0'){
-            printf("ERROR:%d: no label after '&' \n", lineCounter);
-            return FALSE;
-        }
+        
         storeWord(&label, line+1, i-1);
         if(!isValidLabel(label.currentWord, label.len, lineCounter)){
             return FALSE;
@@ -343,6 +340,7 @@ int isNum(const char* line, char** numSuffix, char isData, int lineCounter)
     long int max = isData ? ASM_DATA_MAX_INT : ASM_INST_MAX_INT;
 
     char* localSuffix;
+    Token t;
     long int num = strtol(line, &localSuffix, 10);
     if(numSuffix == NULL){
         numSuffix = &localSuffix;
@@ -353,7 +351,8 @@ int isNum(const char* line, char** numSuffix, char isData, int lineCounter)
     /*strtol manpage: "If there were no digits at all, strtol() stores the 
      *original value of nptr in *endptr (and returns 0)."*/
     if(line == *numSuffix){
-        printf("ERROR:%d: No number was read\n", lineCounter);
+        storeWord(&t, line, *numSuffix - line+1);
+        printf("ERROR:%d: No number found; read: \"%s\" \n", lineCounter, t.currentWord);
         return FALSE;
     }
     if(num < min || num > max){
@@ -365,7 +364,8 @@ int isNum(const char* line, char** numSuffix, char isData, int lineCounter)
             if(**numSuffix == ',')
                 return TRUE;
             else{
-                printf("ERROR:%d: illegal characters after number\n", lineCounter);
+                storeWord(&t, line, *numSuffix - line+1);
+                printf("ERROR:%d: illegal characters after number; read: \"%s\" \n", lineCounter,t.currentWord);
                 return FALSE;
             }
         }
