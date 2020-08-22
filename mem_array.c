@@ -55,7 +55,7 @@ void addExternLabel(char* label, unsigned long address)
         extList.tail = new;
     }
 } 
-void incrementLabel(ExternLabel* l, unsigned long newAddress)
+static void incrementLabel(ExternLabel* l, unsigned long newAddress)
 {
     if(++l->addresses.counter == l->addresses.size){
         /*Reallocate*/

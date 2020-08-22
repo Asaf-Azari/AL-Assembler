@@ -20,9 +20,6 @@ typedef struct externList{
     ExternLabel* tail;
 } ExternList;
 void addExternLabel(char* label, unsigned long address);
-void incrementLabel(ExternLabel* l, unsigned long newAddress);
-void addToList(ExternLabel* label);
-void printList();
 void createExt(FILE* ext);
 int noExtern();
 unsigned long* createArr(int counter);
