@@ -45,7 +45,5 @@ int isKeyword(char* word)
 /*Checks if a given bounded word is a register*/
 int isReg(const char* line)
 {
-    printf("%s", line);
-    putchar(line[2]);
     return (line[0] == 'r') && line[1] >= '0' && line[1] <= '7' && (isspace(line[2]) || (line[2] == ',' || line[2] == '\0'));
 }

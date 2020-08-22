@@ -238,7 +238,7 @@ int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCo
             cmd->cmdName,
             (params == 1) ? "1st" : "2nd");
         }
-        while(!isspace(line[i]) && line[i] != ',')
+        while(line[i] != '\0' && !isspace(line[i]) && line[i] != ',')
             ++i;
         if(line[i] == '\0'){
             printf("ERROR:%d: no label after '&' \n", lineCounter);
@@ -254,7 +254,7 @@ int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCo
     /*Label*/
     else{
         int i = 0;
-        while(!isspace(line[i]) && line[i] != ',')
+        while(line[i] != '\0' && !isspace(line[i]) && line[i] != ',')
             ++i;
         storeWord(&label, line, i);
         if(!isValidLabel(label.currentWord, label.len, lineCounter)){
