@@ -382,6 +382,7 @@ int isNum(const char* line, char** numSuffix, char isData, int lineCounter)
     long int max = isData ? ASM_DATA_MAX_INT : ASM_INST_MAX_INT;/*.data range*/
 
     char* localSuffix;/*char* pointing to characters after number*/
+    Token t;
     long int num = strtol(line, &localSuffix, 10);
     if(numSuffix == NULL){/*no numSuffix is given*/
         numSuffix = &localSuffix;
@@ -390,7 +391,8 @@ int isNum(const char* line, char** numSuffix, char isData, int lineCounter)
         *numSuffix = localSuffix;
     }
     if(line == *numSuffix){/*no digits read*/
-        printf("ERROR:%d: No number was read\n", lineCounter);
+        storeWord(&t, line, *numSuffix - line+1);
+        printf("ERROR:%d: No number found; read: \"%s\" \n", lineCounter, t.currentWord);
         return FALSE;
     }
     if(num < min || num > max){/*number outside of range*/
@@ -402,7 +404,8 @@ int isNum(const char* line, char** numSuffix, char isData, int lineCounter)
             if(**numSuffix == ',')/*a comma is valid inside a .data instruction*/
                 return TRUE;
             else{/*any other non-whitespace character is illegal after a number*/
-                printf("ERROR:%d: illegal characters after number\n", lineCounter);
+                storeWord(&t, line, *numSuffix - line+1);
+                printf("ERROR:%d: illegal characters after number; read: \"%s\" \n", lineCounter,t.currentWord);
                 return FALSE;
             }
         }
