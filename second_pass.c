@@ -18,10 +18,18 @@ enum{
     REG
 }addressingType;
 
+/*Second pass of our assembler.
+ *Second pass attempts to create the memory picture
+ *It will encode line by line into the right memory picture (data/instruction)
+ *and will handle marking labels as entry and log external mentions for both the ext and ent files
+ *Will raise errors if encountered and unkown label, if relative addresing is
+ *called upon an external label or if there was an attempt to declare an unkown label as entry
+ *returns false if any errors were met and true otherwise.
+ */
 int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
 {
     char line[MAX_LINE_LENGTH + 2];
-    Token toke;
+    Token toke; /*Struct holding current word and its' length*/
     char errorFlag = FALSE;
     int lineCounter = 0;
     int lineLen;
@@ -40,15 +48,15 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
             continue;
         }
 
-        getWord(line, &i, &index1, &index2);
+        getWord(line, &i, &index1, &index2);/*get the first word*/
         storeWord(&toke, &line[index1], index2-index1+1);
 
-        if(line[index2] == ':'){/* skipping labels*/
+        if(line[index2] == ':'){/* skipping label definitionss*/
             getWord(line, &i, &index1, &index2);
             storeWord(&toke, &line[index1], index2-index1+1);
         }
 
-        if(line[index1] == '.'){
+        if(line[index1] == '.'){ /*if assembly opt*/
             if(!strcmp(toke.currentWord, ".data")){/*Encode data*/
                 char* numSuffix;
                 long int num;
@@ -68,7 +76,7 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
 
                 index1 = index2+1;
                 index2 = lineLen-1;
-                while(isspace(line[index1]))
+                while(isspace(line[index1]))/*grabbing both '"' indexes*/
                     index1++;
                 while(isspace(line[index2]))
                     index2--;
@@ -82,7 +90,7 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
             else if(!strcmp(toke.currentWord, ".entry")){
                 getWord(line, &i, &index1, &index2);
                 storeWord(&toke, &line[index1], index2-index1+1);
-                if(!makeEntry(toke.currentWord)){
+                if(!makeEntry(toke.currentWord)){/*try to mark label as entry, if fails, raise error*/
                     printf("ERROR:%d: label \"%s\" not found, cannot add entry point\n",
                             lineCounter,
                             toke.currentWord);
@@ -97,33 +105,33 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
             int opNum = 1;
             int addWords = 0;
 
-            cmdIndex = isOp(toke.currentWord);
+            cmdIndex = isOp(toke.currentWord);/*get commmand and do initial masking*/
             inst->arr[instIdx] = CMD[cmdIndex].mask;
 
-            while(line[commaIndex] != ',' && line[commaIndex] != '\0')
+            while(line[commaIndex] != ',' && line[commaIndex] != '\0')/*find comma for 2 operator comands*/
                 ++commaIndex;
-            while(opNum <= CMD[cmdIndex].numParams){
+            while(opNum <= CMD[cmdIndex].numParams){/*encode based on the number of parameters*/
                 int startIndex = (opNum == 1) ? i : commaIndex+1;
                 int endIndex = (opNum == 1) ? commaIndex-1 : lineLen-1;
                 int adderShift = (opNum == 1 && CMD[cmdIndex].numParams == 2) ? SRC_REG : DEST_REG;/*Operations with 1 argument use only destination register*/
-                while(isspace(line[startIndex]))
+                while(isspace(line[startIndex]))/*skip whitespace*/
                     ++startIndex;
                 while(isspace(line[endIndex]))
                     --endIndex;
 
                 storeWord(&toke, &line[startIndex], endIndex-startIndex+1);
-                op = parseOperand(&toke);
+                op = parseOperand(&toke);/* parse operand and handle based on addressing method */
 
                 if(op.addressing == IMMEDIATE){
-                    inst->arr[instIdx] |= ENCODE_METHOD_REG(0, IMMEDIATE, adderShift);
+                    inst->arr[instIdx] |= ENCODE_METHOD_REG(0, IMMEDIATE, adderShift);/*encode command*/
                     ++addWords;
-                    inst->arr[instIdx+addWords] = ENCODE_WORD_NUM(op.type.num);
+                    inst->arr[instIdx+addWords] = ENCODE_WORD_NUM(op.type.num);/*encode secondary word*/
                 }
 
                 else if(op.addressing == DIRECT){
                     long address;
                     char external;
-                    inst->arr[instIdx] |= ENCODE_METHOD_REG(0, DIRECT, adderShift);
+                    inst->arr[instIdx] |= ENCODE_METHOD_REG(0, DIRECT, adderShift);/*encode command*/
                     if((address = getAddress(op.type.label)) == -1){
                         printf("ERROR:%d: label \"%s\" was not declared\n",
                                 lineCounter,
@@ -134,13 +142,13 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                     ++addWords;
                     external = isExtern(op.type.label);
                     if(external)
-                        addExternLabel(op.type.label, instIdx+addWords+STARTADDRESS);
+                        addExternLabel(op.type.label, instIdx+addWords+STARTADDRESS);/*mark for exporting to .ext*/
                     inst->arr[instIdx+addWords] = ENCODE_WORD_ADDRESS(address, external);/*first bit*/
                 }
 
                 else if(op.addressing == RELATIVE){
-                    long address;
-                    inst->arr[instIdx] |= ENCODE_METHOD_REG(0, RELATIVE, adderShift);
+                    long address;/*for calculating relative jump/*
+                    inst->arr[instIdx] |= ENCODE_METHOD_REG(0, RELATIVE, adderShift);/*encode command*/
                     if((address = getAddress(op.type.label)) == -1){
                         printf("ERROR:%d: label \"%s\" was not declared\n",
                                 lineCounter,
@@ -155,7 +163,7 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                     }
                     /*encode address jump into instIdx+addWords*/
                     ++addWords;
-                    inst->arr[instIdx+addWords] = ENCODE_JUMP_DISTANCE(address, instIdx+STARTADDRESS);
+                    inst->arr[instIdx+addWords] = ENCODE_JUMP_DISTANCE(address, instIdx+STARTADDRESS);/*calculate end encode jump distance*/
                 }
 
                 else if(op.addressing == REG){
@@ -169,28 +177,28 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
     }
     return !errorFlag;
 }
-
+/*reads the operand given bt token and returns its addressing type and value*/
 Operand parseOperand(Token* t)
 {
     Operand op;
-    if(t->currentWord[t->len-1] == ','){
+    if(t->currentWord[t->len-1] == ','){/*ignore comma*/
         --t->len;
         t->currentWord[t->len] = '\0';
     }
-    if(t->currentWord[0] == '#'){
+    if(t->currentWord[0] == '#'){/*Immediate addressing*/
         op.type.num = strtol(&t->currentWord[1], NULL, 10);
         op.addressing = IMMEDIATE;
     }
-    else if(t->currentWord[0] == '&'){
+    else if(t->currentWord[0] == '&'){/*relative addressing*/
         op.type.label = &t->currentWord[1];
         op.addressing = RELATIVE;
     }
-    else if(t->len == 2 && t->currentWord[0] == 'r' && (t->currentWord[t->len-1] >= '0' && t->currentWord[t->len-1] <= '7')){
+    else if(t->len == 2 && t->currentWord[0] == 'r' && (t->currentWord[t->len-1] >= '0' && t->currentWord[t->len-1] <= '7')){/*register*/
         op.type.reg = t->currentWord[t->len-1] - '0';
         op.addressing = REG;
     }
     else{
-        op.type.label = &t->currentWord[0];
+        op.type.label = &t->currentWord[0];/*direct addressing*/
         op.addressing = DIRECT;
     }
     return op;

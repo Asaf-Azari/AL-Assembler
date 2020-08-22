@@ -1,3 +1,6 @@
+/*This file contains various method that manage the assembler symbom table, 
+* the table is implemented using a linked list, which structure is hidden from the user
+*/
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -113,6 +116,7 @@ void clearSymbolTable()
     l.tail = NULL;
     l.head = NULL;
 }
+/*returns wheter there are any entry marked labels in the table*/
 int areEntries(){
     Node* n = l.head;
     while(n != NULL){
@@ -123,6 +127,7 @@ int areEntries(){
     }
     return FALSE;
 }
+/*prints entry marked labels in ent file appropriate format to a given file*/
 void createEnt(FILE* ent){
    Node* n = l.head;
     while(n != NULL){

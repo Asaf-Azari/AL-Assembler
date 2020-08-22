@@ -77,7 +77,7 @@ void addExternLabel(char* label, unsigned long address)
         extList.tail = new;
     }
 } 
-#if 0 
+#if 0 /*TODO clean these up?*/ 
 void addToList(ExternLabel* label)
 {
     if(extList.head == NULL){

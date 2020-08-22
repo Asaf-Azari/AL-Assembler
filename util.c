@@ -1,8 +1,10 @@
+/*this file contains general utilities for parsing and manipulating text*/ 
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
 #include "util.h"
 #include "asm_tables.h"
+/*Sets given indexes to the bounds of a word starting at i*/
 void getWord(char* line, int* i, int* index1, int* index2)
 {
     while(isspace(line[*i])) 
@@ -12,13 +14,14 @@ void getWord(char* line, int* i, int* index1, int* index2)
         ++*i;
     *index2 = (line[*index1] == '\0')? *i :*i-1; /*when no word have been found*/
 }
+/*stores a substring given by index and length in a token datatype*/
 void storeWord(Token* t, const char* line, int len)
 {
     t->len = len;
     strncpy(t->currentWord, line, len);
-    t->currentWord[len] = '\0';/*Apparently strncpy doesn't append a null byte*/
+    t->currentWord[len] = '\0';/*strncpy doesn't append a null byte*/
 }
-
+/*returns command type from the static table and -1 if it doesn't exists*/
 int isOp(char* op)
 {   
     int i;

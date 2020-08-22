@@ -40,6 +40,7 @@ FILE* getFile(char* fileName, FILETYPE type)
     return filePtr;
 }
 
+/*prints the memry tabels in an appropriate format for .ob file*/
 void createOb(FILE* ob, encodedAsm* inst, encodedAsm* data)
 {
     int i;
@@ -50,6 +51,8 @@ void createOb(FILE* ob, encodedAsm* inst, encodedAsm* data)
     for(d = 0; d < data->counter; ++d)
         fprintf(ob,"%.07d %.06lx\n", STARTADDRESS + i + d, data->arr[d]);
 }
+
+/*checks which files should be created and calls the appropriate functions, will print errors and skip a file if the program runs into IO issue*/
 void createOuput(char* fileName, encodedAsm* inst, encodedAsm* data)
 {
     FILE* ob;
@@ -88,6 +91,7 @@ void createOuput(char* fileName, encodedAsm* inst, encodedAsm* data)
         }
     }
 }
+/*Frees memory, closes files and cleans all data between different files*/
 void freeMemory(FILE* fp, encodedAsm* inst, encodedAsm* data)
 {
     if(fclose(fp)){
