@@ -54,6 +54,7 @@ void createOb(FILE* ob, encodedAsm* inst, encodedAsm* data)
 void createOuput(char* fileName, encodedAsm* inst, encodedAsm* data)
 {
     FILE* ob;
+    /*TODO: change if statements to convey same condition*/
     if(!noExtern()){
         FILE* ext = getFile(fileName, EXT);
         if(ext == NULL){
