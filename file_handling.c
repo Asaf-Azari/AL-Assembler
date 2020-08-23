@@ -23,7 +23,6 @@ FILE* getFile(char* fileName, FILETYPE type)
     /*point to file extension string according to type*/
     switch(type)
     {
-        /*TODO: is it okay to point to string literals after decleration? can't remember*/
         case OB:
             append = OB_TYPE;
             break;

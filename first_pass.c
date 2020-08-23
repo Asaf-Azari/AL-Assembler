@@ -20,13 +20,11 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
     Token word;/*Struct holding current word and its length*/
     int lineCounter = 0;
     int lineLen;
-    /*TODO:Still think we need to have a cleaner way to describe going over the line.
-     * maybe bundling index1 with index2 and call it something like WordBound(similar to Token
-     * but just for bounding. maybe even have a Token and TokenCopy*/
+    /*Indicies to iterate over the line*/
     int i = 0, index1, index2;
     char errorFlag = FALSE;
 
-    char labelFlag;/*denotes if a labe needs to be added for current line*/
+    char labelFlag;/*denotes if a label needs to be added for current line*/
     char labelTemp[MAXLABELSIZE+1];/*for adding the label to the symbol table later*/
     
     /*reset IC and DC*/
@@ -116,7 +114,6 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
                     errorFlag = TRUE;
                     continue;
                 }
-                /*TODO: put if(labelflag) at the end? we have duplication above*/
                 if(labelFlag){/*label at the beginning of the line*/
                     if(!exists(labelTemp))/*not already declared*/
                         addLabel(labelTemp, TRUE, FALSE, *dataCounter);/*add it to symbol table*/
