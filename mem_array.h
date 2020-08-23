@@ -23,11 +23,19 @@ typedef struct externList{
     ExternLabel* head;
     ExternLabel* tail;
 } ExternList;
-
+/*Used by the user of the list to add a label reference at a given address.*/
 void addExternLabel(char* label, unsigned long address);
+/*Given a file, prints addresses in code in which external
+ *symbols are referenced*/
 void createExt(FILE* ext);
+/*Returns true if there are extern declerations in the code
+ *and false otherwise.*/
 int areExterns();
+/*Creates an array with <counter> number of unsigned long type.*/
 unsigned long* createArr(int counter);
+/*Free memory pictures' memory.*/
 void resetPicture(encodedAsm* pic);
+/*Iterates over each extern label and frees its array of references and
+ *then the node containing it.*/
 void clearExternalList();
 #endif

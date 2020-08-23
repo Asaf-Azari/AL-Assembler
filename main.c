@@ -6,7 +6,7 @@
  * 
  *The assembler works in two passes, the first checks for syntax errors,
  *asserts that there are no illegal commands in the assembly program,
- *saves the labels used in the assembly program and adjusts counters to
+ *saves the labels used in the assembly program and adjusts counters
  *to later encode the instructions.
  *The second pass attempts to encode the assembly instructions and further validating
  *that the assembly program is legal.
