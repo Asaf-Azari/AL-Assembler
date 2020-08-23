@@ -24,7 +24,6 @@ typedef struct externList{
     ExternLabel* tail;
 } ExternList;
 
-/*function headers*/
 void addExternLabel(char* label, unsigned long address);
 void createExt(FILE* ext);
 int areExterns();

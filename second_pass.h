@@ -10,6 +10,5 @@ typedef struct{
     int addressing;
 } Operand;
 
-/*functions decleration*/
 int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst);
 Operand parseOperand(Token* t);

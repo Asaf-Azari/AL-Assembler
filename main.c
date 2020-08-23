@@ -1,5 +1,27 @@
-/* TODO This program is an assemblerhedy356ywtyhgh*/
-/* TODO grep for TODOs #META*/
+/*Authors: Asaf Azari and Lior Merkel Golan
+ *This program is an assembler for an assembly language defined in maman 14,
+ *semester 2020b leaflet.
+ *The assembler was written with the -ansi flag in mind(c90 standard) and so
+ *it tries to be compliant as much as possible with the c90 ansi standard.
+ * 
+ *The assembler works in two passes, the first checks for syntax errors,
+ *asserts that there are no illegal commands in the assembly program,
+ *saves the labels used in the assembly program and adjusts counters to
+ *to later encode the instructions.
+ *The second pass attempts to encode the assembly instructions and further validating
+ *that the assembly program is legal.
+
+ *If both passes are completed sucssessfully, the assembler will try to create
+ *output files that contain the linkable\loadable version of our program along with linking
+ *information(external label references and entry information for other assembly
+ *source code) if there is any.
+ *
+ *The second pass cannot start if the first pass failed and likewise output
+ *creation cannot occur if the second pass failed.
+ *
+ *Throughout the assembling proccess, the assembler will raise errors if
+ *it encountered any.
+ **/
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

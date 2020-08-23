@@ -129,10 +129,10 @@ int areEntries()
     }
     return FALSE;
 }
-/*TODO: not sure what the comment means*/
-/*prints entry marked labels in ent file appropriate format to a given file*/
-void createEnt(FILE* ent){
-   Node* n = l.head;
+/*prints entry marked labels in a format appropriate to a .ent file to a given FILE* */
+void createEnt(FILE* ent)
+{
+    Node* n = l.head;
     while(n != NULL){
         if(n->isEntry)
             fprintf(ent,"%s %.07ld\n", n->label,n->address);

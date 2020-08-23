@@ -1,3 +1,5 @@
+#ifndef ASM_FILE_HANDLE
+#define ASM_FILE_HANDLE
 #include "mem_array.h"
 #include <stdlib.h>
 typedef enum/*enum denoting file types for reading/writing*/
@@ -16,3 +18,4 @@ typedef enum/*enum denoting file types for reading/writing*/
 FILE* getFile(char* fileName, FILETYPE type);
 void createOuput(char* fileName, encodedAsm* inst, encodedAsm* data);
 void freeMemory(FILE* fp, encodedAsm* inst, encodedAsm* data);
+#endif
