@@ -18,6 +18,12 @@ enum{
     REG
 }addressingType;
 
+/*Second pass of our assembler.
+ *checks for label references which are not declared(by going over the symbol
+ *table we've created in the first pass) and illegal jumps(jump to external label).
+ *encodes the assembly instructions into memory pictures which will be later
+ *printed into output files.
+ */
 int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
 {
     char line[MAX_LINE_LENGTH + 2];
@@ -27,6 +33,7 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
     int lineLen;
     int i = 0;
     int index1, index2;
+    /*local IC and DC to encode instructions*/
     int dataIdx = 0, instIdx = 0;
     while(fgets(line, MAX_LINE_LENGTH + 2, fp)){
         int cmdIndex;
@@ -34,7 +41,7 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
         ++lineCounter;
         lineLen = strlen(line);
 
-        while(isspace(line[i]))
+        while(isspace(line[i]))/*Skipping leading whitespace*/
             ++i;
         if(line[i] == ';' || line[i] == '\0'){/*skipping line if empty/comment*/
             continue;
@@ -43,21 +50,21 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
         getWord(line, &i, &index1, &index2);
         storeWord(&toke, &line[index1], index2-index1+1);
 
-        if(line[index2] == ':'){/* skipping labels*/
+        if(line[index2] == ':'){/*skipping labels*/
             getWord(line, &i, &index1, &index2);
             storeWord(&toke, &line[index1], index2-index1+1);
         }
 
-        if(line[index1] == '.'){
+        if(line[index1] == '.'){/*assembly instruction*/
             if(!strcmp(toke.currentWord, ".data")){/*Encode data*/
-                char* numSuffix;
+                char* numSuffix;/*points to text after number*/
                 long int num;
                 num = strtol(&line[i], &numSuffix, 10);/*Fence posting*/
                 while(line[i] != '\0'){/*While there's numbers to read*/
                     
                     data->arr[dataIdx++] = ENCODE_DATA_NUM(num);/*Encoding*/
 
-                    i = numSuffix - &line[0];
+                    i = numSuffix - &line[0];/*i points to text after number*/
                     /*Skipping over commas and whitespace*/
                     while(isspace(line[i]) || line[i] == ',')
                         ++i;
@@ -65,24 +72,25 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                 }
             }
             else if(!strcmp(toke.currentWord, ".string")){/*Encode string*/
-
                 index1 = index2+1;
                 index2 = lineLen-1;
+                /*adjust indicies to point to enclosing "*/
                 while(isspace(line[index1]))
                     index1++;
                 while(isspace(line[index2]))
                     index2--;
                 /*Starting after '"'*/
-                index1++;/* fence posting*/
+                index1++;/*fence posting*/
                 for(; index1 < index2; ++index1){
+                    /*encode each character into memory word and increment local IC*/
                     data->arr[dataIdx++] = ENCODE_DATA_STRING(line[index1]);
                 }
-                data->arr[dataIdx++] = '\0';/*Terminating null character*/
+                data->arr[dataIdx++] = '\0';/*encoding terminating null character*/
             }
-            else if(!strcmp(toke.currentWord, ".entry")){
+            else if(!strcmp(toke.currentWord, ".entry")){/*marking label is entry*/
                 getWord(line, &i, &index1, &index2);
                 storeWord(&toke, &line[index1], index2-index1+1);
-                if(!makeEntry(toke.currentWord)){
+                if(!makeEntry(toke.currentWord)){/*if entry does not exist*/
                     printf("ERROR:%d: label \"%s\" was not declared in file\n",
                             lineCounter,
                             toke.currentWord);
@@ -91,14 +99,15 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
             }
             continue;
         }
+
         else{/*Operator*/
-            Operand op;
-            int commaIndex = i;
-            int opNum = 1;
-            int addWords = 0;
+            Operand op;/*holding operand value and type*/
+            int commaIndex = i;/*index pointing to comma*/
+            int opNum = 1;/*starting to encode first operand*/
+            int addWords = 0;/*number of additional memory words to add(according to immediate/direct/relative)*/
 
             cmdIndex = isOp(toke.currentWord);
-            inst->arr[instIdx] = CMD[cmdIndex].mask;
+            inst->arr[instIdx] = CMD[cmdIndex].mask;/*basic operator bit mask*/
 
             while(line[commaIndex] != ',' && line[commaIndex] != '\0')
                 ++commaIndex;
