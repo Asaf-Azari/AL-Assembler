@@ -1,5 +1,5 @@
-/*This program is an assemblerhedy356ywtyhgh*/
-
+/* TODO This program is an assemblerhedy356ywtyhgh*/
+/* TODO grep for TODOs #META*/
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -10,7 +10,6 @@
 #include "first_pass.h"
 #include "second_pass.h"
 #include "file_handling.h"
-
 
 int main(int argc, char** argv)
 {
