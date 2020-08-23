@@ -2,7 +2,7 @@ CFLAGS = -g -Wall -ansi -pedantic
 OBJS = main.o first_pass.o asm_tables.o symbol_table.o second_pass.o mem_array.o util.o file_handling.o
 UTILITY = util.c util.h
 prog:	$(OBJS)
-	gcc $(CFLAGS) $^ -o prog
+	gcc $(CFLAGS) $^ -o assembler
 main.o:	main.c file_handling.h asm_tables.h first_pass.h
 	gcc $(CFLAGS) -c main.c 
 asm_tables.o:	asm_tables.c asm_tables.h
