@@ -1,5 +1,5 @@
-/*This file contains various method that manage the assembler symbom table, 
-* the table is implemented using a linked list, which structure is hidden from the user
+/*This file contains various method that manage the assembler symbol table.
+*The table is implemented using a linked list, a data structure which implementation is hidden from the user.
 */
 #include <string.h>
 #include <stdlib.h>
@@ -8,10 +8,11 @@
 #include "asm_tables.h"
 #include "symbol_table.h"
 
-/*static list decleration. users can't directly access*/
+/*static list decleration. users can't access the table directly*/
 static List l;
 
-/*Returns the memory address of label.*/
+/*Returns the memory address of a label if it exists.
+ *returns -1 otherwise.*/
 long getAddress(char label[])
 {
     Node* currentNode = l.head;
@@ -46,7 +47,7 @@ int isExtern(char label[])
     return FALSE;
 }
 
-/*Marks a label within the symbol table with entry property.*/
+/*Marks a label within the symbol table with the entry property.*/
 int makeEntry(char label[])
 {
     Node* currentNode = l.head;
@@ -60,15 +61,15 @@ int makeEntry(char label[])
     }
     return FALSE;
 }
-/*Append node to the list, if the list is empty, appoint node as head.
+/*Append node to the list. if the list is empty, appoint node as head.
  *Should not be used by used by the user as it is an implementation detail.*/
 static void addNode(Node* n)
 {
-    if(l.head == NULL){
+    if(l.head == NULL){/*empty list*/
         l.head = n;
         l.tail = n;
     }
-    else{
+    else{/*append to list*/
         l.tail->nextPtr = n;
         l.tail = n;
     }
@@ -82,7 +83,7 @@ void addLabel(char* nodeLabel, unsigned char isData, unsigned char isExtern, uns
         printf("Terminating program...\n");
         exit(1);
     }
-    strcpy(newNode->label, nodeLabel);
+    strcpy(newNode->label, nodeLabel);/*Assumes a null terminated string*/
     newNode->isData = isData;
     newNode->isExtern = isExtern;
     newNode->address = address;
@@ -117,7 +118,8 @@ void clearSymbolTable()
     l.head = NULL;
 }
 /*returns wheter there are any entry marked labels in the table*/
-int areEntries(){
+int areEntries()
+{
     Node* n = l.head;
     while(n != NULL){
         if(n->isEntry){
@@ -127,6 +129,7 @@ int areEntries(){
     }
     return FALSE;
 }
+/*TODO: not sure what the comment means*/
 /*prints entry marked labels in ent file appropriate format to a given file*/
 void createEnt(FILE* ent){
    Node* n = l.head;

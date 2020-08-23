@@ -16,9 +16,9 @@ int main(int argc, char** argv)
     int i;
     /*structures holding instruction and data pictures along with their counters*/
     encodedAsm inst, data;
-    FILE* fp = NULL;
-    inst.arr = NULL;
-    data.arr = NULL;
+    FILE* fp = NULL;/*current file*/
+    inst.arr = NULL;/*instruction memory picture*/
+    data.arr = NULL;/*data memory picture*/
 
     if(argc == 1){/*no arguments*/
         printf("ERROR: No arguments supplied\n");

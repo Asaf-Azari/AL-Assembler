@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "asm_tables.h"
 
-enum{
+enum{/*denoting which assembly instruction was found*/
     ERROR,
     DATA,
     STRING,

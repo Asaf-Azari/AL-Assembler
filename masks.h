@@ -1,7 +1,12 @@
+/*This file contains constants and macros used for encoding the assembly instructions
+ *into the memory pictures.*/
 #ifndef ASM_MASKS
 #define ASM_MASKS 
 
-#define FIRST24 16777215UL /*2^24-1*/
+/*2^24-1
+ *Used to mask encoding in case sizeof(long) > 3*/
+#define FIRST24 16777215UL 
+
 #define DEST_REG 8
 #define SRC_REG 13
 #define ENCODE_METHOD_REG(reg, adder, shift) ( (((unsigned long)adder << 3UL)|((unsigned long)reg)) << (unsigned long)shift )

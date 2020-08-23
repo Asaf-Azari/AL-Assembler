@@ -1,5 +1,7 @@
 #include "constants.h"
 #include "stdlib.h"
+
+/*list structers definitions*/
 typedef struct Node{
     struct   Node*  nextPtr;
     char          label[MAXLABELSIZE+1];

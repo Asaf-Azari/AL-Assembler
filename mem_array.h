@@ -2,10 +2,14 @@
 #define ASM_MEM_ARRAY
 #include "constants.h"
 #include "stdlib.h"
+
+#define BASE_EXTERN_SIZE 10
 typedef struct{/*Holding memory picture along with associated counter*/
     int counter;
     unsigned long* arr;
 } encodedAsm;
+
+/*extern list struct definitions*/
 typedef struct ExternLabel{
     struct{
         unsigned long  size;
@@ -19,6 +23,8 @@ typedef struct externList{
     ExternLabel* head;
     ExternLabel* tail;
 } ExternList;
+
+/*function headers*/
 void addExternLabel(char* label, unsigned long address);
 void createExt(FILE* ext);
 int areExterns();

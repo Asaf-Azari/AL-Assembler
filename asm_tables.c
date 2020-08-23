@@ -1,6 +1,12 @@
+/*File containing a global constant commands table.
+ *Look in asm_tables.h for the structure definition.
+ *This table allows us to receive information about a given command
+ *anywhere in the program by indexing into it. The constant modifier
+ *asserts that its contents won't change throughout the program.*/
 #include "asm_tables.h"
 #include <stdio.h>
-
+/*a bit mask that allows us to create a basic bit pattern that won't change
+ *for each command(page 34 in the maman)*/
 #define CREATE_MASK(op, funct) ((op << 18) | (funct << 3) | 4)
 
 const COMMANDS CMD[] = {
@@ -20,5 +26,5 @@ const COMMANDS CMD[] = {
     {"prn",  CREATE_MASK(13, 0), 1,  OP1_IMMEDIATE|OP1_LABEL|OP1_REG},
     {"rts",  CREATE_MASK(14, 0), 0,  NO_OP},
     {"stop", CREATE_MASK(15, 0), 0,  NO_OP},
-    {NULL,   CREATE_MASK(0, 0), 0,   NO_OP}
+    {NULL,   CREATE_MASK(0, 0), 0,   NO_OP}/*NULL string bounds iteration over the array*/
     };

@@ -4,7 +4,8 @@
 #include "file_handling.h"
 #include "mem_array.h"
 #include "symbol_table.h"
-/*acquiring FILE* with FILETYPE extension for writing/reading.*/
+/*acquiring FILE* using FILETYPE extension for writing/reading.
+ *function callee must verify that filePtr != NULL*/
 FILE* getFile(char* fileName, FILETYPE type)
 {
     int nameLen = strlen(fileName);
@@ -19,8 +20,10 @@ FILE* getFile(char* fileName, FILETYPE type)
     }
 
     strcpy(namePtr, fileName);
+    /*point to file extension string according to type*/
     switch(type)
     {
+        /*TODO: is it okay to point to string literals after decleration? can't remember*/
         case OB:
             append = OB_TYPE;
             break;
@@ -34,13 +37,13 @@ FILE* getFile(char* fileName, FILETYPE type)
             append = ENT_TYPE;
             break;
     }
-    strcat(namePtr+nameLen, append);
+    strcat(namePtr+nameLen, append);/*append file extension*/
     filePtr = fopen(namePtr, type == AS ? "r" : "w");
     free(namePtr);
     return filePtr;
 }
 
-/*prints the memry tabels in an appropriate format for .ob file*/
+/*prints the memory pictures in an appropriate format for .ob file*/
 void createOb(FILE* ob, encodedAsm* inst, encodedAsm* data)
 {
     int i;
@@ -52,7 +55,8 @@ void createOb(FILE* ob, encodedAsm* inst, encodedAsm* data)
         fprintf(ob,"%.07d %.06lx\n", STARTADDRESS + i + d, data->arr[d]);
 }
 
-/*checks which files should be created and calls the appropriate functions, will print errors and skip a file if the program runs into IO issue*/
+/*checks which files should be created and calls the appropriate functions.
+ *will print errors and skip a file if the program runs into IO issue.*/
 void createOuput(char* fileName, encodedAsm* inst, encodedAsm* data)
 {
     FILE* ob;

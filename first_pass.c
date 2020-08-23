@@ -17,7 +17,7 @@
 int firstPass(FILE* fp, int* dataCounter, int* instCounter)
 {
     char line[MAX_LINE_LENGTH + 2];
-    Token word;/*Struct holding current word and its' length*/
+    Token word;/*Struct holding current word and its length*/
     int lineCounter = 0;
     int lineLen;
     /*TODO:Still think we need to have a cleaner way to describe going over the line.
@@ -163,7 +163,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
             }
         }
 
-        else if((cmdIndex = isOp(word.currentWord)) != -1){/*Operator*/
+        else if((cmdIndex = isOp(word.currentWord)) != -1){/*command*/
             int start = i;/*index pointing to first operand*/
             int wordIdx;/*index pointing to current operand*/
             int commaIndex;/*index pointing to comma*/
@@ -210,7 +210,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
 
         }/*else if Op*/
 
-        else{/*Not a label, asmOpt or operator*/
+        else{/*Not a label, asmOpt or command*/
             printf("ERROR:%d: unrecognized instruction \"%s\" \n", lineCounter, word.currentWord);
             errorFlag = TRUE;
             continue;
@@ -229,7 +229,7 @@ int firstPass(FILE* fp, int* dataCounter, int* instCounter)
     return !errorFlag;/*return wheter or not we had an error on first pass*/
 }
 
-/*asserts the syntax, type and usage of a given operand for a given operator.
+/*asserts the syntax, type and usage of a given operand for a given command.
  *reports error if found any and adjusts IC according to operand type.
  *returns false if errors were met and true otherwise.*/
 int verifyOperand(const char* line, const COMMANDS* cmd, int params, int* instCounter, int lineCounter)
@@ -468,19 +468,19 @@ int validateData(const char* line, int i, int lineCounter)
     }
     return dataArgs;/*returns number of arguments read*/
 }
-/*validates number of operands given to an operator is valid.
- *returns false if given too many\little operands according to operator pointed to by
+/*validates number of operands given to a command is valid.
+ *returns false if given too many\little operands according to command pointed to by
  *cmdIndex and true otherwise.*/
 int validateOpNum(const char* line, int* i, int cmdIndex, int lineCounter)
 {
-    int params = CMD[cmdIndex].numParams;/*locally store number of parameters expected from the operator*/
+    int params = CMD[cmdIndex].numParams;/*locally store number of parameters expected from the command*/
     while (isspace(line[*i]))/*skip leading whitespace*/
         ++*i;
-    if(params == 0 && line[*i] != '\0'){/*operands given to 0 operand operator*/
+    if(params == 0 && line[*i] != '\0'){/*operands given to 0 operand command*/
         printf("ERROR:%d: command \"%s\" does not accepts operands \n", lineCounter, CMD[cmdIndex].cmdName);
         return FALSE;
     }
-    else if(params != 0 && line[*i] == '\0'){/*no operands given to an operator expecting paramaters*/
+    else if(params != 0 && line[*i] == '\0'){/*no operands given to a command expecting paramaters*/
         printf("ERROR:%d: command \"%s\" accepts %d operand%s, none given \n",
                lineCounter,
                CMD[cmdIndex].cmdName,
@@ -490,14 +490,14 @@ int validateOpNum(const char* line, int* i, int cmdIndex, int lineCounter)
     }
     return TRUE;
 }
-/*validates number of commas given to an operator is valid.
- *returns -1 if there are too many\little commas according to operator pointed to by
+/*validates number of commas given to a command is valid.
+ *returns -1 if there are too many\little commas according to command pointed to by
  *cmdIndex and the index pointing to the comma in the line otherwise.*/
 int validateCommas(const char* line, int i, int cmdIndex, int lineCounter)
 {
     int commas = 0;/*number of commas counted*/
     int commaIndex;/*index pointing to comma in line*/
-    int params = CMD[cmdIndex].numParams;/*number of parameters expected by operator*/
+    int params = CMD[cmdIndex].numParams;/*number of parameters expected by command*/
     while(line[i] != '\0'){
         if (line[i] == ','){ /*Counting commas in line*/
             ++commas;
@@ -505,13 +505,13 @@ int validateCommas(const char* line, int i, int cmdIndex, int lineCounter)
         }
         i++;
     }
-    if(params == 1 && commas > 0){/*commas for operator taking 1 operand*/
+    if(params == 1 && commas > 0){/*commas for command taking 1 operand*/
         printf("ERROR:%d: command \"%s\" accepts 1 operand, extranous comma \n",
                lineCounter,
                CMD[cmdIndex].cmdName);
         return -1;
     }
-    else if(params == 2 && commas != 1){/*extra/missing commas for operator taking 2 operands*/
+    else if(params == 2 && commas != 1){/*extra/missing commas for command taking 2 operands*/
         printf("ERROR:%d: command \"%s\" accepts 2 operands, %s \n",
                lineCounter,
                CMD[cmdIndex].cmdName,

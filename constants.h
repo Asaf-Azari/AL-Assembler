@@ -1,3 +1,4 @@
+/*This file contains constants used across the program.*/
 #ifndef ASM_CONSTANTS
 
 #define ASM_CONSTANTS
@@ -12,6 +13,7 @@
 #define FALSE 0
 #define TRUE 1
 
+/*maximum integer sizes*/
 #define ASM_INST_MIN_INT -1048576/* (2^21)/2 */
 #define ASM_INST_MAX_INT  1048575/* ((2^21)/2) - 1 */
 

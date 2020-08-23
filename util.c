@@ -4,24 +4,24 @@
 #include <stdio.h>
 #include "util.h"
 #include "asm_tables.h"
-/*Sets given indexes to the bounds of a word starting at i*/
+/*Sets given indicies to the bounds of a word starting at i*/
 void getWord(char* line, int* i, int* index1, int* index2)
 {
     while(isspace(line[*i])) 
             ++*i;
-    *index1 = *i;
+    *index1 = *i;/*first character in word*/
     while(!isspace(line[*i]) && line[*i] != '\0') 
         ++*i;
     *index2 = (line[*index1] == '\0')? *i :*i-1; /*when no word have been found*/
 }
-/*stores a substring given by index and length in a token datatype*/
+/*stores a substring given by index and length in a Token datatype*/
 void storeWord(Token* t, const char* line, int len)
 {
     t->len = len;
     strncpy(t->currentWord, line, len);
     t->currentWord[len] = '\0';/*strncpy doesn't append a null byte*/
 }
-/*returns command type from the static table and -1 if it doesn't exists*/
+/*returns command index from the constant command table and -1 if it doesn't exists*/
 int isOp(char* op)
 {   
     int i;
@@ -31,7 +31,6 @@ int isOp(char* op)
     }
     return -1;
 }
-
 /*checks if a given word is a saved keyword used by the assembly language.*/
 int isKeyword(char* word)
 {

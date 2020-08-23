@@ -11,7 +11,7 @@
 #include "symbol_table.h"
 #include "second_pass.h"
 
-enum{
+enum{/*Addressing types for visual control flow*/
     IMMEDIATE,
     DIRECT,
     RELATIVE,
@@ -19,26 +19,29 @@ enum{
 }addressingType;
 
 /*Second pass of our assembler.
- *Second pass attempts to create the memory picture
+ *Second pass attempts to create the memory picture.
  *It will encode line by line into the right memory picture (data/instruction)
- *and will handle marking labels as entry and log external mentions for both the ext and ent files
- *Will raise errors if encountered and unkown label, if relative addresing is
+ *and will handle marking labels as entry and log external references for both the ext and ent files.
+ *Will raise errors if encountered an unknown label, if relative addresing is
  *called upon an external label or if there was an attempt to declare an unkown label as entry
  *returns false if any errors were met and true otherwise.
  */
 int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
 {
     char line[MAX_LINE_LENGTH + 2];
-    Token toke; /*Struct holding current word and its' length*/
+    Token toke; /*Struct holding current word and its length*/
     char errorFlag = FALSE;
+
     int lineCounter = 0;
     int lineLen;
+
+    /*indicies for iterating over the line*/
     int i = 0;
     int index1, index2;
     /*local IC and DC to encode instructions*/
     int dataIdx = 0, instIdx = 0;
-    while(fgets(line, MAX_LINE_LENGTH + 2, fp)){
-        int cmdIndex;
+    while(fgets(line, MAX_LINE_LENGTH + 2, fp)){/*While there's input*/
+        int cmdIndex;/*index pointing to a command in the constant command table*/
         i = 0;
         ++lineCounter;
         lineLen = strlen(line);
@@ -52,12 +55,12 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
         getWord(line, &i, &index1, &index2);/*get the first word*/
         storeWord(&toke, &line[index1], index2-index1+1);
 
-        if(line[index2] == ':'){/* skipping label definitionss*/
+        if(line[index2] == ':'){/*skipping label definitions*/
             getWord(line, &i, &index1, &index2);
             storeWord(&toke, &line[index1], index2-index1+1);
         }
 
-        if(line[index1] == '.'){ /*if assembly opt*/
+        if(line[index1] == '.'){/*if assembly opt*/
             if(!strcmp(toke.currentWord, ".data")){/*Encode data*/
                 char* numSuffix;/*points to text after number*/
                 long int num;
@@ -102,7 +105,7 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
             continue;
         }
 
-        else{/*Operator*/
+        else{/*command*/
             Operand op;/*holding operand value and type*/
             int commaIndex = i;/*index pointing to comma*/
             int opNum = 1;/*starting to encode first operand*/
@@ -111,19 +114,24 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
             cmdIndex = isOp(toke.currentWord);/*get commmand and do initial masking*/
             inst->arr[instIdx] = CMD[cmdIndex].mask;
 
-            while(line[commaIndex] != ',' && line[commaIndex] != '\0')/*find comma for 2 operator comands*/
+            while(line[commaIndex] != ',' && line[commaIndex] != '\0')/*find comma for 2 operand comands*/
                 ++commaIndex;
             while(opNum <= CMD[cmdIndex].numParams){/*encode based on the number of parameters*/
+                /*indicies to bound operand*/
                 int startIndex = (opNum == 1) ? i : commaIndex+1;
                 int endIndex = (opNum == 1) ? commaIndex-1 : lineLen-1;
-                int adderShift = (opNum == 1 && CMD[cmdIndex].numParams == 2) ? SRC_REG : DEST_REG;/*Operations with 1 argument use only destination register*/
+
+                /*bit shift according to which register we're encoding*/
+                int adderShift = (opNum == 1 && CMD[cmdIndex].numParams == 2) ? SRC_REG : DEST_REG;
+
+                /*bound operand*/
                 while(isspace(line[startIndex]))/*skip whitespace*/
                     ++startIndex;
                 while(isspace(line[endIndex]))
                     --endIndex;
 
                 storeWord(&toke, &line[startIndex], endIndex-startIndex+1);
-                op = parseOperand(&toke);/* parse operand and handle based on addressing method */
+                op = parseOperand(&toke);/*parse operand and handle based on addressing method*/
 
                 if(op.addressing == IMMEDIATE){
                     inst->arr[instIdx] |= ENCODE_METHOD_REG(0, IMMEDIATE, adderShift);/*encode command*/
@@ -146,7 +154,7 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                     external = isExtern(op.type.label);
                     if(external)
                         addExternLabel(op.type.label, instIdx+addWords+STARTADDRESS);/*mark for exporting to .ext*/
-                    inst->arr[instIdx+addWords] = ENCODE_WORD_ADDRESS(address, external);/*first bit*/
+                    inst->arr[instIdx+addWords] = ENCODE_WORD_ADDRESS(address, external);/*encode secondary word*/
                 }
 
                 else if(op.addressing == RELATIVE){
@@ -164,7 +172,8 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                                 op.type.label);
                         errorFlag = TRUE;
                     }
-                    /*encode address jump into instIdx+addWords*/
+
+                    /*encode address jump into next word*/
                     ++addWords;
                     inst->arr[instIdx+addWords] = ENCODE_JUMP_DISTANCE(address, instIdx+STARTADDRESS);/*calculate end encode jump distance*/
                 }
@@ -173,11 +182,11 @@ int secondPass(FILE* fp, encodedAsm* data, encodedAsm* inst)
                     /*mask according to register number*/
                     inst->arr[instIdx] |= ENCODE_METHOD_REG(op.type.reg, REG, adderShift);
                 }
-                opNum++;
+                opNum++;/*next operand*/
             }
-        instIdx += addWords + 1;/*additional words with current one*/
-        }
-    }
+            instIdx += addWords + 1;/*count this memory word with additional word encoded*/
+        }/*else command*/
+    }/*while fgets*/
     return !errorFlag;
 }
 /*reads the operand given by Token and returns its addressing type and value*/
